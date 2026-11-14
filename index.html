@@ -3104,7 +3104,7 @@
 
       for (const url of [FIRESTORE_DOC_URL, FIRESTORE_LEGACY_URL]) {
         try {
-          const res = await fetch(`${url}&_t=${Date.now()}`, {
+          const res = await fetch(url, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             cache: 'no-store',
@@ -3202,7 +3202,7 @@
 
       for (const url of [FIRESTORE_DOC_URL, FIRESTORE_LEGACY_URL]) {
         try {
-          const res = await fetch(`${url}&_t=${Date.now()}`, {
+          const res = await fetch(url, {
             method: 'GET',
             cache: 'no-store',
             headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
