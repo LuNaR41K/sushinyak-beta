@@ -638,6 +638,13 @@
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span>Режим управления</span>
                       </span>
+                      <button id="admin-cloud-status-btn"
+                              type="button"
+                              onclick="event.stopPropagation(); openAdminCloudHelpModal();"
+                              class="px-3 py-1 rounded-full bg-zinc-800/90 border border-white/15 text-zinc-200 text-[11px] font-bold tracking-wide inline-flex items-center gap-1.5 cursor-pointer hover:bg-zinc-700/90 transition">
+                        <span id="admin-cloud-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                        <span id="admin-cloud-text">Проверка облака...</span>
+                      </button>
                       <button type="button"
                               onclick="event.stopPropagation(); openAdminCreateItemModal();"
                               class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white text-xs font-extrabold shadow-lg hover:brightness-110 active:scale-95 transition inline-flex items-center gap-1.5 cursor-pointer">
@@ -1114,6 +1121,43 @@
         </button>
         <button onclick="closeAdminLogoModal()" class="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-300 font-bold text-xs cursor-pointer">
           Отмена
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- МОДАЛЬНОЕ ОКНО ДИАГНОСТИКИ ОБЛАЧНОЙ СИНХРОНИЗАЦИИ FIREBASE              -->
+  <!-- ======================================================================= -->
+  <div id="admin-cloud-help-modal" class="ios-modal-overlay fixed inset-0 z-[180] flex items-center justify-center px-4 py-6">
+    <div onclick="closeAdminCloudHelpModal()" class="ios-modal-backdrop absolute inset-0"></div>
+    <div class="ios-modal-card relative z-10 w-full max-w-md rounded-3xl p-5 sm:p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h4 class="text-base sm:text-lg font-extrabold text-white">Статус облачной базы Firebase</h4>
+        <button onclick="closeAdminCloudHelpModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-300 cursor-pointer">✕</button>
+      </div>
+
+      <div id="cloud-diagnostic-box" class="rounded-2xl bg-black/40 border border-white/15 p-3.5 text-xs text-zinc-200 space-y-1.5">
+        <div class="font-bold text-orange-400">Проект: sushinyak-5ff9c</div>
+        <div id="cloud-diagnostic-detail" class="text-zinc-300 leading-relaxed">Проверка соединения с базой данных...</div>
+      </div>
+
+      <div class="rounded-2xl bg-amber-500/10 border border-amber-400/30 p-4 text-xs text-zinc-200 space-y-2.5 leading-relaxed">
+        <div class="font-extrabold text-amber-300 uppercase tracking-wider">Если изменения не видны на другом устройстве:</div>
+        <p>В вашем проекте <strong>sushinyak-5ff9c</strong> нужно один раз нажать кнопку создания базы Firestore:</p>
+        <ol class="list-decimal list-inside space-y-1.5 text-zinc-100 font-medium">
+          <li>Откройте консоль: <a href="https://console.firebase.google.com/project/sushinyak-5ff9c/firestore" target="_blank" rel="noopener" class="text-orange-400 underline font-bold">console.firebase.google.com/project/sushinyak-5ff9c/firestore</a></li>
+          <li>Нажмите <strong>Create database</strong> (Создать базу данных).</li>
+          <li>На шаге Location нажмите <strong>Next</strong>, выберите <strong>Start in test mode</strong> (Тестовый режим) и нажмите <strong>Create</strong>.</li>
+        </ol>
+      </div>
+
+      <div class="flex items-center gap-2 pt-1">
+        <button onclick="forceCloudSyncNow()" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-extrabold text-xs sm:text-sm shadow-lg cursor-pointer">
+          Проверить и синхронизировать сейчас
+        </button>
+        <button onclick="closeAdminCloudHelpModal()" class="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-300 font-bold text-xs cursor-pointer">
+          Закрыть
         </button>
       </div>
     </div>
@@ -2046,7 +2090,9 @@
       const itemOpen = document.getElementById('admin-item-modal').classList.contains('open');
       const logoModalEl = document.getElementById('admin-logo-modal');
       const logoOpen = logoModalEl && logoModalEl.classList.contains('open');
-      if (callOpen || loginOpen || itemOpen || logoOpen) {
+      const cloudHelpEl = document.getElementById('admin-cloud-help-modal');
+      const cloudHelpOpen = cloudHelpEl && cloudHelpEl.classList.contains('open');
+      if (callOpen || loginOpen || itemOpen || logoOpen || cloudHelpOpen) {
         document.body.classList.add('modal-blur-active');
       } else {
         document.body.classList.remove('modal-blur-active');
@@ -2054,863 +2100,145 @@
     }
 
     // =========================================================================
-    // КАРТОЧКА ТОВАРА, КОРЗИНА, СВАЙП УДАЛЕНИЯ И ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
+    // БЕЗОТКАЗНОЕ ЛОКАЛЬНОЕ И ОБЛАЧНОЕ СОХРАНЕНИЕ ЧЕРЕЗ FIREBASE (sushinyak-5ff9c)
     // =========================================================================
-    function getItemTotalInCart(itemId) {
-      return cart.reduce((acc, c) => (c.key === itemId ? acc + c.qty : acc), 0);
+    const FIREBASE_CONFIG = {
+      apiKey: "AIzaSyCN9xO379TNKdhkD2AZqZAFE3sZ6Dv3ygk",
+      authDomain: "sushinyak-5ff9c.firebaseapp.com",
+      projectId: "sushinyak-5ff9c",
+      storageBucket: "sushinyak-5ff9c.firebasestorage.app",
+      messagingSenderId: "464125051556",
+      appId: "1:464125051556:web:f8a60802e1619893495c31"
+    };
+
+    const LOCAL_STORAGE_KEY = 'sushnyak_custom_state_v3';
+    const LEGACY_STORAGE_KEY = 'sushnyak_custom_state_v2';
+
+    // Основной и резервные эндпоинты проекта sushinyak-5ff9c
+    const FIRESTORE_DOC_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/sushinyak_config/global_state?key=${FIREBASE_CONFIG.apiKey}`;
+    const FIRESTORE_LEGACY_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/sushinyak_global/state?key=${FIREBASE_CONFIG.apiKey}`;
+    const RTDB_FALLBACK_URLS = [
+      `https://${FIREBASE_CONFIG.projectId}-default-rtdb.firebaseio.com/sushinyak_state.json`,
+      `https://${FIREBASE_CONFIG.projectId}-default-rtdb.europe-west1.firebasedatabase.app/sushinyak_state.json`
+    ];
+
+    // Эталонный слепок 92 базовых позиций брошюры для чистой дельта-синхронизации между устройствами
+    const DEFAULT_MENU_SNAPSHOT = MENU_ITEMS.map(item => ({ ...item }));
+    const DEFAULT_MENU_IDS = new Set(DEFAULT_MENU_SNAPSHOT.map(i => i.id));
+
+    let cloudSyncState = {
+      ok: false,
+      lastError: '',
+      lastSyncTime: 0,
+      lastAppliedUpdatedAt: 0
+    };
+
+    function updateAdminCloudBadge(ok, text, detailMsg) {
+      cloudSyncState.ok = ok;
+      if (detailMsg) cloudSyncState.lastError = detailMsg;
+      const dot = document.getElementById('admin-cloud-dot');
+      const label = document.getElementById('admin-cloud-text');
+      const detailBox = document.getElementById('cloud-diagnostic-detail');
+
+      if (dot && label) {
+        if (ok) {
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+          label.textContent = text || 'Облако синхронизировано';
+        } else {
+          dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+          label.textContent = text || 'База не создана в Firebase (нажмите)';
+        }
+      }
+      if (detailBox && detailMsg) {
+        detailBox.textContent = detailMsg;
+      }
     }
 
-    window.handleDirectAddToCart = function(itemId, event) {
-      if (event) event.stopPropagation();
-      const item = MENU_ITEMS.find(i => i.id === itemId);
-      if (!item) return;
-
-      addToCart(item.id, 1);
-
-      const btn = document.getElementById(`add-btn-${itemId}`);
-      if (btn) {
-        btn.classList.remove('animate-pop');
-        void btn.offsetWidth;
-        btn.classList.add('animate-pop');
+    window.openAdminCloudHelpModal = function() {
+      const modal = document.getElementById('admin-cloud-help-modal');
+      if (modal) {
+        modal.classList.add('open');
+        syncModalBlurBodyState();
       }
     };
 
-    window.addToCart = function(itemId, delta) {
-      const item = MENU_ITEMS.find(i => i.id === itemId);
-      if (!item && delta > 0) return;
-
-      const existingIdx = cart.findIndex(c => c.key === itemId);
-      if (existingIdx > -1) {
-        cart[existingIdx].qty += delta;
-        if (cart[existingIdx].qty <= 0) {
-          cart.splice(existingIdx, 1);
-        }
-      } else if (delta > 0 && item) {
-        cart.push({
-          key: itemId,
-          itemId: item.id,
-          title: item.name,
-          price: item.price,
-          ingredients: item.ingredients,
-          photo: item.photo || renderStudioBrochureDish(item),
-          qty: delta
-        });
-      }
-
-      syncCartUI(delta > 0);
-      const q = document.getElementById('menu-search-input').value;
-      renderMenu(q);
-    };
-
-    window.removeCartItemWithAnimation = function(cartKey) {
-      const outerEl = document.querySelector(`[data-cart-outer="${cartKey}"]`);
-      const rowEl = document.querySelector(`[data-cart-row="${cartKey}"]`);
-      if (outerEl && rowEl) {
-        const startHeight = outerEl.offsetHeight;
-        outerEl.style.height = startHeight + 'px';
-        outerEl.style.overflow = 'hidden';
-        void outerEl.offsetHeight;
-
-        const blurOverlay = rowEl.querySelector('.left-edge-blur-overlay');
-        if (blurOverlay) blurOverlay.style.opacity = '1';
-
-        rowEl.style.transform = 'translate3d(-105%, 0, 0)';
-        rowEl.style.opacity = '0';
-        rowEl.style.filter = 'blur(10px)';
-
-        requestAnimationFrame(() => {
-          outerEl.style.height = '0px';
-          outerEl.style.marginBottom = '0px';
-          outerEl.style.marginTop = '0px';
-          outerEl.style.paddingTop = '0px';
-          outerEl.style.paddingBottom = '0px';
-          outerEl.style.opacity = '0';
-        });
-
-        setTimeout(() => {
-          cart = cart.filter(c => c.key !== cartKey);
-          syncCartUI(false);
-          renderMenu(document.getElementById('menu-search-input').value);
-        }, 340);
-      } else {
-        cart = cart.filter(c => c.key !== cartKey);
-        syncCartUI(false);
-        renderMenu(document.getElementById('menu-search-input').value);
+    window.closeAdminCloudHelpModal = function() {
+      const modal = document.getElementById('admin-cloud-help-modal');
+      if (modal) {
+        modal.classList.remove('open');
+        syncModalBlurBodyState();
       }
     };
 
-    window.clearEntireCart = function() {
-      cart = [];
-      syncCartUI(false);
-      renderMenu(document.getElementById('menu-search-input').value);
+    window.forceCloudSyncNow = async function() {
+      updateAdminCloudBadge(false, 'Синхронизация...', 'Отправка и проверка состояния облачной базы sushinyak-5ff9c...');
+      await pushStateToCloud(getCurrentSerializedCustomState());
+      await pullCloudStateFromFirestoreRest(true);
     };
 
-    function syncCartUI(animateBadge = false) {
-      cart.forEach(c => {
-        const live = MENU_ITEMS.find(i => i.id === c.key);
-        if (live) {
-          c.title = live.name;
-          c.price = live.price;
-          c.ingredients = live.ingredients;
-          c.photo = live.photo || renderStudioBrochureDish(live);
-        }
-      });
+    // Автоматическое сжатие загружаемых фото/логотипов на канвасе (чтобы размер всегда был 20-45 КБ)
+    function compressImageToDataURL(file, maxDim = 520, quality = 0.78, keepAlpha = false) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('File read error'));
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onerror = () => reject(new Error('Image decode error'));
+          img.onload = () => {
+            let w = img.naturalWidth || 320;
+            let h = img.naturalHeight || 320;
+            const scale = Math.min(maxDim / w, maxDim / h, 1);
+            w = Math.max(1, Math.round(w * scale));
+            h = Math.max(1, Math.round(h * scale));
 
-      const totalCount = cart.reduce((sum, c) => sum + c.qty, 0);
-      const totalSum = cart.reduce((sum, c) => sum + c.price * c.qty, 0);
-
-      const floatingPill = document.getElementById('cart-floating-price-pill');
-      const floatingPrice = document.getElementById('floating-dock-price');
-      const floatingCount = document.getElementById('floating-dock-count');
-
-      if (totalCount > 0) {
-        floatingPill.classList.remove('hidden');
-        floatingPill.classList.add('inline-flex');
-        floatingPrice.textContent = `${totalSum}₽`;
-        floatingCount.textContent = `${totalCount} шт. в корзине`;
-        if (animateBadge) {
-          floatingPill.classList.remove('animate-pop');
-          void floatingPill.offsetWidth;
-          floatingPill.classList.add('animate-pop');
-        }
-      } else {
-        floatingPill.classList.add('hidden');
-        floatingPill.classList.remove('inline-flex');
-      }
-
-      document.getElementById('cart-total-count').textContent = `${totalCount} шт.`;
-      document.getElementById('cart-total-sum').textContent = `${totalSum}₽`;
-
-      const clearBtn = document.getElementById('clear-cart-btn');
-      if (totalCount > 0) {
-        clearBtn.classList.remove('hidden');
-      } else {
-        clearBtn.classList.add('hidden');
-      }
-
-      const container = document.getElementById('cart-items-container');
-      if (!container) return;
-
-      if (cart.length === 0) {
-        container.innerHTML = `
-          <div class="ios-dock-glass rounded-3xl p-8 sm:p-10 text-center my-4">
-            <div class="w-16 h-16 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-3 text-orange-400">
-              <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
-              </svg>
-            </div>
-            <h3 class="text-lg font-extrabold text-white mb-1">Ваша корзина пуста</h3>
-            <p class="text-xs text-zinc-400 mb-5">Добавьте любимые роллы, пиццу или супы из меню «СУШНЯК»</p>
-            <button onclick="switchTab('menu')" class="px-6 py-3 rounded-full bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-extrabold text-xs uppercase tracking-wider shadow-lg cursor-pointer">
-              Перейти в меню
-            </button>
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = cart.map(c => `
-        <div data-cart-outer="${c.key}" class="cart-item-outer relative rounded-2xl">
-          <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-600/30 via-red-600/80 to-red-600 flex items-center justify-end pr-6 text-white font-extrabold text-xs uppercase tracking-wider pointer-events-none">
-            <span>Удалить</span>
-          </div>
-
-          <div data-cart-row="${c.key}" 
-               class="cart-swipe-item relative z-10 ios-dock-glass rounded-2xl p-3 sm:p-4 flex items-center gap-3.5 border border-white/15">
-            
-            <div class="left-edge-blur-overlay absolute inset-y-0 left-0 w-28 rounded-l-2xl bg-gradient-to-r from-red-500/45 via-orange-500/20 to-transparent z-20"></div>
-
-            <div class="brochure-photo-wrap w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
-              <img src="${c.photo}" alt="${c.title}" class="brochure-photo-img" />
-            </div>
-
-            <div class="flex-1 min-w-0">
-              <h4 class="font-extrabold text-white text-sm sm:text-base truncate">${c.title}</h4>
-              <p class="text-[11px] text-zinc-400 line-clamp-1 mt-0.5">${c.ingredients}</p>
-              <div class="mt-2 flex items-center gap-2">
-                <span class="brochure-price-pill text-xs px-2.5 py-0.5">${c.price * c.qty}₽</span>
-                ${c.qty > 1 ? `<span class="text-[11px] text-zinc-400 font-semibold">${c.price}₽ × ${c.qty}</span>` : ''}
-              </div>
-            </div>
-
-            <div class="flex flex-col items-end gap-2 shrink-0">
-              <button onclick="removeCartItemWithAnimation('${c.key}')" 
-                      title="Убрать из корзины"
-                      class="px-2.5 py-1 rounded-full bg-red-500/15 hover:bg-red-500/30 border border-red-500/30 text-[11px] font-bold text-red-300 hover:text-white transition cursor-pointer">
-                Убрать
-              </button>
-
-              <div class="flex items-center gap-1.5 bg-black/45 rounded-full p-1 border border-white/10">
-                <button onclick="addToCart('${c.key}', -1)" class="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-sm flex items-center justify-center transition cursor-pointer">−</button>
-                <span class="text-xs font-extrabold text-white min-w-[20px] text-center">${c.qty}</span>
-                <button onclick="addToCart('${c.key}', 1)" class="w-7 h-7 rounded-full bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-bold text-sm flex items-center justify-center transition cursor-pointer">+</button>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      `).join('');
-
-      attachCartSwipeListeners();
-    }
-
-    function attachCartSwipeListeners() {
-      const rows = document.querySelectorAll('[data-cart-row]');
-      rows.forEach(row => {
-        const key = row.getAttribute('data-cart-row');
-        const blurOverlay = row.querySelector('.left-edge-blur-overlay');
-        let startX = 0;
-        let startY = 0;
-        let currentX = 0;
-        let isDragging = false;
-
-        row.addEventListener('touchstart', (e) => {
-          if (!e.touches || e.touches.length === 0) return;
-          startX = e.touches[0].clientX;
-          startY = e.touches[0].clientY;
-          currentX = 0;
-          isDragging = false;
-        }, { passive: true });
-
-        row.addEventListener('touchmove', (e) => {
-          if (!e.touches || e.touches.length === 0) return;
-          const dx = e.touches[0].clientX - startX;
-          const dy = e.touches[0].clientY - startY;
-
-          if (!isDragging) {
-            if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
-              isDragging = true;
-              row.classList.add('swiping');
+            const c = document.createElement('canvas');
+            c.width = w;
+            c.height = h;
+            const ctx = c.getContext('2d');
+            if (!keepAlpha) {
+              ctx.fillStyle = '#18191c';
+              ctx.fillRect(0, 0, w, h);
             } else {
-              return;
+              ctx.clearRect(0, 0, w, h);
             }
-          }
+            ctx.drawImage(img, 0, 0, w, h);
 
-          if (dx < 0) {
-            currentX = dx;
-            const progress = Math.min(Math.abs(dx) / 140, 1);
-            row.style.transform = `translate3d(${dx}px, 0, 0)`;
-            row.style.filter = `blur(${(progress * 3.5).toFixed(2)}px)`;
-            if (blurOverlay) {
-              blurOverlay.style.opacity = Math.min(progress * 1.35, 1).toFixed(2);
+            let out = c.toDataURL(keepAlpha ? 'image/webp' : 'image/jpeg', quality);
+            if (out.length > 180000) {
+              out = c.toDataURL('image/jpeg', 0.68);
             }
-          }
-        }, { passive: true });
-
-        const finishSwipe = () => {
-          if (!isDragging) return;
-          row.classList.remove('swiping');
-          if (currentX < -95) {
-            removeCartItemWithAnimation(key);
-          } else {
-            row.style.transform = 'translate3d(0, 0, 0)';
-            row.style.filter = 'none';
-            if (blurOverlay) blurOverlay.style.opacity = '0';
-          }
-          isDragging = false;
-          currentX = 0;
+            resolve(out);
+          };
+          img.src = e.target.result;
         };
-
-        row.addEventListener('touchend', finishSwipe);
-        row.addEventListener('touchcancel', finishSwipe);
+        reader.readAsDataURL(file);
       });
     }
-
-    // =========================================================================
-    // НЕПОЛНОЕ МОДАЛЬНОЕ ОКНО КАРТОЧКИ БЛЮДА (iOS SHEET) + ЖЕСТ ЗАКРЫТИЯ СВАЙПОМ
-    // =========================================================================
-    window.handleCardClick = function(itemId, event) {
-      if (event && event.target.closest('[data-cart-action-zone="true"]')) {
-        return;
-      }
-      openDishSheet(itemId);
-    };
-
-    function populateDishSheet(item) {
-      const catObj = CATEGORIES.find(c => c.id === item.category);
-      document.getElementById('sheet-dish-img').src = item.photo || renderStudioBrochureDish(item);
-      document.getElementById('sheet-dish-img').alt = item.name;
-      document.getElementById('sheet-category-tag').textContent = catObj ? catObj.title : '';
-      document.getElementById('sheet-dish-title').textContent = item.name;
-      document.getElementById('sheet-dish-ingredients').textContent = item.ingredients;
-      document.getElementById('sheet-price-badge').textContent = `${item.price}₽`;
-
-      const badgesTop = document.getElementById('sheet-badges-top');
-      badgesTop.innerHTML = `
-        ${item.weight ? `<span class="brochure-weight-pill text-xs px-3 py-1">${item.weight}</span>` : ''}
-        ${item.spicy ? `<span class="brochure-weight-pill text-xs px-3 py-1 border-orange-500/80 text-orange-300 flex items-center gap-1.5">${SPICY_FLAME_SVG} Острое блюдо</span>` : ''}
-      `;
-
-      const adminEditBtn = document.getElementById('sheet-admin-edit-btn');
-      if (isAdmin) {
-        adminEditBtn.classList.remove('hidden');
-        adminEditBtn.classList.add('inline-flex');
-      } else {
-        adminEditBtn.classList.add('hidden');
-        adminEditBtn.classList.remove('inline-flex');
-      }
-
-      const addBtn = document.getElementById('sheet-add-btn');
-      addBtn.innerHTML = `
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        <span>Добавить в корзину за ${item.price}₽</span>
-      `;
-      addBtn.onclick = () => {
-        addToCart(item.id, 1);
-        closeDishSheet();
-      };
-    }
-
-    function openDishSheet(itemId) {
-      const item = MENU_ITEMS.find(i => i.id === itemId);
-      if (!item) return;
-      currentSheetItem = item;
-
-      populateDishSheet(item);
-
-      const modal = document.getElementById('dish-sheet-modal');
-      const panel = document.getElementById('dish-sheet-panel');
-      const scrollBody = document.getElementById('sheet-scroll-body');
-      panel.style.transform = '';
-      if (scrollBody) scrollBody.scrollTop = 0;
-
-      document.body.classList.add('sheet-open');
-      modal.classList.add('open');
-    }
-
-    window.closeDishSheet = function() {
-      const modal = document.getElementById('dish-sheet-modal');
-      const panel = document.getElementById('dish-sheet-panel');
-      panel.style.transform = '';
-      modal.classList.remove('open');
-      document.body.classList.remove('sheet-open');
-      currentSheetItem = null;
-    };
-
-    function initSheetSwipeToClose() {
-      const grabber = document.getElementById('sheet-grabber-zone');
-      const panel = document.getElementById('dish-sheet-panel');
-      const handleBar = document.getElementById('sheet-handle-bar');
-      if (!grabber || !panel) return;
-
-      let startY = 0;
-      let currentDeltaY = 0;
-      let isDraggingSheet = false;
-
-      const onStart = (clientY) => {
-        startY = clientY;
-        currentDeltaY = 0;
-        isDraggingSheet = true;
-        panel.classList.add('dragging-sheet');
-        if (handleBar) handleBar.style.transform = 'scaleX(1.22)';
-      };
-
-      const onMove = (clientY) => {
-        if (!isDraggingSheet) return;
-        const dy = clientY - startY;
-        currentDeltaY = Math.max(0, dy);
-        panel.style.transform = `translate3d(0, ${currentDeltaY}px, 0)`;
-      };
-
-      const onEnd = () => {
-        if (!isDraggingSheet) return;
-        isDraggingSheet = false;
-        panel.classList.remove('dragging-sheet');
-        if (handleBar) handleBar.style.transform = '';
-
-        if (currentDeltaY > 105) {
-          closeDishSheet();
-        } else {
-          panel.style.transform = '';
-        }
-        currentDeltaY = 0;
-      };
-
-      grabber.addEventListener('touchstart', (e) => {
-        if (e.touches && e.touches.length > 0) onStart(e.touches[0].clientY);
-      }, { passive: true });
-
-      grabber.addEventListener('touchmove', (e) => {
-        if (e.touches && e.touches.length > 0) onMove(e.touches[0].clientY);
-      }, { passive: true });
-
-      grabber.addEventListener('touchend', onEnd);
-      grabber.addEventListener('touchcancel', onEnd);
-
-      grabber.addEventListener('mousedown', (e) => {
-        onStart(e.clientY);
-        const moveHandler = (ev) => onMove(ev.clientY);
-        const upHandler = () => {
-          onEnd();
-          window.removeEventListener('mousemove', moveHandler);
-          window.removeEventListener('mouseup', upHandler);
-        };
-        window.addEventListener('mousemove', moveHandler);
-        window.addEventListener('mouseup', upHandler);
-      });
-    }
-
-    // Плавный горизонтальный переход между вкладками «Меню» и «Корзина» БЕЗ размытия
-    function syncTopProgressiveBlur() {
-      const topBlurShield = document.getElementById('top-progressive-blur');
-      const menuPane = document.getElementById('view-menu');
-      const cartPane = document.getElementById('view-cart');
-      if (!topBlurShield) return;
-
-      if (currentTab === 'cart') {
-        topBlurShield.classList.add('cart-mode');
-        const cartY = cartPane ? cartPane.scrollTop : 0;
-        // В начале корзины (scrollTop <= 10) блюр полностью прозрачен, чтобы заголовок «Корзина» никогда не размывался
-        topBlurShield.style.opacity = cartY <= 10 ? '0' : String(Math.min(0.85, (cartY - 10) / 45));
-      } else {
-        topBlurShield.classList.remove('cart-mode');
-        const menuY = menuPane ? menuPane.scrollTop : 0;
-        topBlurShield.style.opacity = menuY <= 6 ? '0' : String(Math.min(1, menuY / 55));
-      }
-    }
-
-    window.switchTab = function(tabName) {
-      if (currentTab === tabName) {
-        if (tabName === 'menu') {
-          const menuPane = document.getElementById('view-menu');
-          if (menuPane) menuPane.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        return;
-      }
-
-      currentTab = tabName;
-      const track = document.getElementById('views-slider-track');
-      const stickyHost = document.getElementById('sticky-controls-host');
-      const btnMenu = document.getElementById('tab-btn-menu');
-      const btnCart = document.getElementById('tab-btn-cart');
-
-      if (tabName === 'menu') {
-        track.style.transform = 'translate3d(0%, 0, 0)';
-        stickyHost.classList.remove('opacity-0', 'pointer-events-none');
-
-        btnMenu.className = 'flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white shadow-lg cursor-pointer';
-        btnCart.className = 'flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 text-zinc-300 hover:text-white relative cursor-pointer';
-        syncTopProgressiveBlur();
-      } else {
-        track.style.transform = 'translate3d(-50%, 0, 0)';
-        stickyHost.classList.add('opacity-0', 'pointer-events-none');
-
-        btnCart.className = 'flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white shadow-lg relative cursor-pointer';
-        btnMenu.className = 'flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 text-zinc-300 hover:text-white cursor-pointer';
-
-        const cartPane = document.getElementById('view-cart');
-        if (cartPane) cartPane.scrollTo({ top: 0, behavior: 'instant' });
-        syncTopProgressiveBlur();
-      }
-    };
-
-    // =========================================================================
-    // РЕНДЕР КАТЕГОРИЙ И ПОЛНОГО МЕНЮ (ВСЕ 13 КАТЕГОРИЙ)
-    // =========================================================================
-    function renderCategoryStrip() {
-      const strip = document.getElementById('expanded-cat-strip');
-      if (!strip) return;
-      strip.innerHTML = CATEGORIES.map(cat => {
-        const isActive = cat.id === activeCategoryId;
-        return `
-          <button type="button"
-                  data-cat-btn="${cat.id}"
-                  onclick="scrollToCategory('${cat.id}', event)"
-                  class="cat-chip shrink-0 px-4 py-2 rounded-full text-xs font-extrabold uppercase tracking-wider cursor-pointer ${
-                    isActive ? 'active' : ''
-                  }">
-            ${cat.title}
-          </button>
-        `;
-      }).join('');
-    }
-
-    function updateActiveCategoryHighlight(catId) {
-      if (activeCategoryId === catId) return;
-      activeCategoryId = catId;
-
-      const strip = document.getElementById('expanded-cat-strip');
-      if (!strip) return;
-      const buttons = strip.querySelectorAll('[data-cat-btn]');
-      buttons.forEach(btn => {
-        const id = btn.getAttribute('data-cat-btn');
-        if (id === catId) {
-          btn.classList.add('active');
-          if (!strip.closest('#categories-morph-box').classList.contains('is-collapsed')) {
-            btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-          }
-        } else {
-          btn.classList.remove('active');
-        }
-      });
-    }
-
-    function renderMenu(filterQuery = '') {
-      const root = document.getElementById('menu-categories-root');
-      const banner = document.getElementById('search-results-banner');
-      const queryTextEl = document.getElementById('search-query-Text');
-      const topHeader = document.getElementById('brochure-top-header');
-      const footerDisclaimer = document.getElementById('menu-footer-disclaimer');
-      const q = (filterQuery || '').trim().toLowerCase();
-
-      if (q.length > 0) {
-        banner.classList.remove('hidden');
-        banner.classList.add('flex');
-        queryTextEl.textContent = `«${filterQuery.trim()}»`;
-        if (topHeader) topHeader.classList.add('hidden');
-        if (footerDisclaimer) footerDisclaimer.classList.add('hidden');
-      } else {
-        banner.classList.add('hidden');
-        banner.classList.remove('flex');
-        if (topHeader) topHeader.classList.remove('hidden');
-        if (footerDisclaimer) footerDisclaimer.classList.remove('hidden');
-      }
-
-      let html = '';
-      let totalFound = 0;
-
-      CATEGORIES.forEach(cat => {
-        const items = MENU_ITEMS.filter(item => {
-          if (item.category !== cat.id) return false;
-          if (!q) return true;
-          const catTitle = cat.title.toLowerCase();
-          return (
-            item.name.toLowerCase().includes(q) ||
-            item.ingredients.toLowerCase().includes(q) ||
-            catTitle.includes(q)
-          );
-        });
-
-        if (items.length === 0) return;
-        totalFound += items.length;
-
-        html += `
-          <section id="cat-sec-${cat.id}" data-category-section="${cat.id}" class="scroll-mt-36 space-y-5">
-            <div class="flex items-center gap-4">
-              <div class="brochure-category-banner text-xs sm:text-sm md:text-base">
-                ${cat.title}
-              </div>
-              <div class="brochure-category-line"></div>
-            </div>
-
-            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
-              ${items.map(item => buildDishCardHTML(item)).join('')}
-            </div>
-          </section>
-        `;
-      });
-
-      if (totalFound === 0) {
-        html = `
-          <div class="ios-dock-glass rounded-3xl p-10 text-center max-w-md mx-auto my-8">
-            <div class="w-14 h-14 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center mx-auto mb-3">
-              <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-            </div>
-            <h3 class="text-lg font-extrabold text-white mb-1">Ничего не найдено</h3>
-            <p class="text-xs text-zinc-400 mb-4">Попробуйте другой запрос или нажмите крестик в строке поиска</p>
-            <button onclick="clearSearchInput(event)" class="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white text-xs font-bold shadow-lg cursor-pointer">
-              Вернуться в меню
-            </button>
-          </div>
-        `;
-      }
-
-      root.innerHTML = html;
-    }
-
-    function buildDishCardHTML(item) {
-      const inCartQty = getItemTotalInCart(item.id);
-      const imgSrc = item.photo || renderStudioBrochureDish(item);
-
-      return `
-        <article onclick="handleCardClick('${item.id}', event)" 
-                 class="dish-card flex flex-col justify-between p-3 sm:p-4 cursor-pointer group">
-          <div>
-            <div class="brochure-photo-wrap relative w-full aspect-square rounded-2xl mb-3 flex items-center justify-center border border-white/10 overflow-hidden shadow-inner">
-              <img src="${imgSrc}" 
-                   alt="${item.name}" 
-                   loading="lazy"
-                   class="brochure-photo-img group-hover:scale-105" />
-
-              <div class="absolute top-2 left-2 z-10 flex flex-wrap gap-1">
-                ${item.weight ? `<span class="brochure-weight-pill">${item.weight}</span>` : ''}
-                ${item.spicy ? `<span class="w-6 h-6 rounded-full bg-black/80 border border-orange-500/60 flex items-center justify-center shadow" title="Острое блюдо">${SPICY_FLAME_SVG}</span>` : ''}
-              </div>
-
-              <div class="brochure-price-pill text-xs sm:text-sm absolute bottom-2 right-2 z-10">
-                ${item.price}₽
-              </div>
-            </div>
-
-            <h3 class="font-extrabold text-white text-sm sm:text-base leading-snug mb-1 group-hover:text-orange-300 transition line-clamp-2">
-              ${item.name}
-            </h3>
-
-            <p class="text-[11px] sm:text-xs text-zinc-400 leading-relaxed line-clamp-2 mb-3">
-              ${item.ingredients}
-            </p>
-          </div>
-
-          <div class="pt-1 mt-auto" data-cart-action-zone="true">
-            <button type="button"
-                    id="add-btn-${item.id}"
-                    onclick="handleDirectAddToCart('${item.id}', event)"
-                    class="w-full py-2.5 px-3 rounded-xl font-extrabold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer ${
-                      inCartQty > 0
-                        ? 'bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white shadow-[0_6px_18px_rgba(229,57,26,0.45)]'
-                        : 'ios-dock-glass hover:bg-white/20 text-white border border-white/15'
-                    }">
-              <svg class="w-4 h-4 shrink-0 text-orange-400 ${inCartQty > 0 ? '!text-white' : ''}" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              <span>${inCartQty > 0 ? `В корзине (${inCartQty})` : 'В корзину'}</span>
-            </button>
-          </div>
-        </article>
-      `;
-    }
-
-    // =========================================================================
-    // МОРФИНГ ПОИСКА И КАТЕГОРИЙ ПРИ ПРОЛИСТЫВАНИИ (БЕЗ ПЕРЕКРЫТИЯ И БЕЗ РЫВКОВ)
-    // =========================================================================
-    function syncMorphRowWidthVar() {
-      const morphContainer = document.getElementById('morph-container');
-      if (!morphContainer) return;
-      const w = morphContainer.clientWidth;
-      if (w > 0) {
-        morphContainer.style.setProperty('--morph-row-w', w + 'px');
-      }
-    }
-
-    function updateHeaderMorphState() {
-      syncMorphRowWidthVar();
-      const morphContainer = document.getElementById('morph-container');
-      const searchBox = document.getElementById('search-morph-box');
-      const searchInput = document.getElementById('menu-search-input');
-      const clearSearchBtn = document.getElementById('clear-search-btn');
-      const catsBox = document.getElementById('categories-morph-box');
-      const topBlurShield = document.getElementById('top-progressive-blur');
-
-      const hasSearchText = searchInput.value.trim().length > 0;
-      const showFullSearch = !isHeaderCollapsed || manualExpandSearch || hasSearchText;
-      const showFullCats = (!isHeaderCollapsed || manualExpandCats) && !hasSearchText;
-
-      if (showFullSearch) {
-        // Когда категории свёрнуты в круглую кнопку слева (50px), строка поиска занимает calc(100% - 60px) справа и НЕ перекрывает кнопку категорий
-        searchBox.style.width = !showFullCats ? 'calc(100% - 60px)' : '100%';
-        searchBox.style.height = '50px';
-        searchBox.style.top = '0px';
-        searchBox.style.right = '0px';
-        searchInput.classList.remove('opacity-0', 'pointer-events-none', 'w-0');
-        searchInput.classList.add('opacity-100', 'w-full');
-        if (hasSearchText || (isHeaderCollapsed && manualExpandSearch)) {
-          clearSearchBtn.classList.remove('hidden');
-          clearSearchBtn.classList.add('flex');
-        } else {
-          clearSearchBtn.classList.add('hidden');
-          clearSearchBtn.classList.remove('flex');
-        }
-      } else {
-        searchBox.style.width = '50px';
-        searchBox.style.height = '50px';
-        searchBox.style.top = '0px';
-        searchBox.style.right = '0px';
-        searchInput.classList.add('opacity-0', 'pointer-events-none', 'w-0');
-        searchInput.classList.remove('opacity-100', 'w-full');
-        clearSearchBtn.classList.add('hidden');
-        clearSearchBtn.classList.remove('flex');
-      }
-
-      if (showFullCats) {
-        catsBox.style.top = showFullSearch ? '58px' : '0px';
-        catsBox.style.left = '0px';
-        catsBox.style.width = showFullSearch ? '100%' : 'calc(100% - 60px)';
-        catsBox.style.height = '50px';
-        catsBox.classList.remove('is-collapsed');
-      } else {
-        catsBox.style.top = '0px';
-        catsBox.style.left = '0px';
-        catsBox.style.width = '50px';
-        catsBox.style.height = '50px';
-        catsBox.classList.add('is-collapsed');
-      }
-
-      if (showFullSearch && showFullCats) {
-        morphContainer.style.height = '108px';
-        if (currentTab === 'menu') topBlurShield.style.height = '136px';
-      } else {
-        morphContainer.style.height = '50px';
-        if (currentTab === 'menu') topBlurShield.style.height = '96px';
-      }
-    }
-
-    window.handleSearchBoxClick = function(e) {
-      if (currentTab !== 'menu') return;
-      const searchInput = document.getElementById('menu-search-input');
-      if (isHeaderCollapsed && !manualExpandSearch) {
-        e.stopPropagation();
-        manualExpandSearch = true;
-        manualExpandCats = false;
-        updateHeaderMorphState();
-        setTimeout(() => {
-          searchInput.focus();
-        }, 60);
-      } else {
-        searchInput.focus();
-      }
-    };
-
-    window.handleCategoriesBoxClick = function(e) {
-      if (currentTab !== 'menu') return;
-      const searchInput = document.getElementById('menu-search-input');
-      if (searchInput.value.trim().length > 0) {
-        e.stopPropagation();
-        exitSearchAndRestorePosition(true);
-        return;
-      }
-      if (isHeaderCollapsed && !manualExpandCats) {
-        e.stopPropagation();
-        manualExpandCats = true;
-        manualExpandSearch = false;
-        updateHeaderMorphState();
-      }
-    };
-
-    window.scrollToCategory = function(catId, e) {
-      if (e) e.stopPropagation();
-      const searchInput = document.getElementById('menu-search-input');
-      if (searchInput.value.trim() !== '') {
-        searchInput.value = '';
-        wasSearching = false;
-        renderMenu('');
-      }
-      updateActiveCategoryHighlight(catId);
-      const menuPane = document.getElementById('view-menu');
-      const sec = document.getElementById(`cat-sec-${catId}`);
-      if (sec && menuPane) {
-        const paneRect = menuPane.getBoundingClientRect();
-        const secRect = sec.getBoundingClientRect();
-        const targetTop = menuPane.scrollTop + (secRect.top - paneRect.top) - 118;
-        menuPane.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
-      }
-    };
-
-    function exitSearchAndRestorePosition(openCategories = false) {
-      const input = document.getElementById('menu-search-input');
-      const menuPane = document.getElementById('view-menu');
-      const hadActiveSearch = wasSearching || input.value.trim().length > 0;
-      input.value = '';
-      wasSearching = false;
-      renderMenu('');
-      input.blur();
-
-      if (hadActiveSearch && menuPane) {
-        menuPane.scrollTo({ top: savedScrollBeforeSearch, behavior: 'instant' });
-        lastScrollY = savedScrollBeforeSearch;
-        isHeaderCollapsed = savedScrollBeforeSearch > 72;
-      }
-      manualExpandSearch = false;
-      manualExpandCats = openCategories;
-      updateHeaderMorphState();
-    }
-
-    window.clearSearchInput = function(e) {
-      if (e) e.stopPropagation();
-      exitSearchAndRestorePosition(false);
-    };
-
-    function setupMenuScrollListener() {
-      const menuPane = document.getElementById('view-menu');
-      const cartPane = document.getElementById('view-cart');
-      if (!menuPane) return;
-
-      if (cartPane) {
-        cartPane.addEventListener('scroll', () => {
-          if (currentTab === 'cart') {
-            syncTopProgressiveBlur();
-          }
-        }, { passive: true });
-      }
-
-      menuPane.addEventListener('scroll', () => {
-        if (currentTab !== 'menu') return;
-        const currentY = menuPane.scrollTop;
-        const delta = currentY - lastScrollY;
-        const searchInput = document.getElementById('menu-search-input');
-        const hasSearchText = searchInput && searchInput.value.trim().length > 0;
-
-        syncTopProgressiveBlur();
-
-        if (hasSearchText) {
-          lastScrollY = currentY;
-          return;
-        }
-
-        if (currentY <= 72) {
-          // В самом верху страницы всегда плавно раскрываем поиск и категории в полный размер
-          if (isHeaderCollapsed || manualExpandSearch || manualExpandCats) {
-            isHeaderCollapsed = false;
-            manualExpandSearch = false;
-            manualExpandCats = false;
-            updateHeaderMorphState();
-          }
-        } else {
-          // Ниже шапки (currentY > 72): сворачиваем как при скролле вниз, так и при скролле вверх
-          if (!isHeaderCollapsed) {
-            isHeaderCollapsed = true;
-            manualExpandSearch = false;
-            manualExpandCats = false;
-            if (document.activeElement === searchInput) {
-              searchInput.blur();
-            }
-            updateHeaderMorphState();
-          } else if ((manualExpandSearch || manualExpandCats) && Math.abs(delta) > 5) {
-            manualExpandSearch = false;
-            manualExpandCats = false;
-            if (document.activeElement === searchInput) {
-              searchInput.blur();
-            }
-            updateHeaderMorphState();
-          }
-        }
-
-        const sections = document.querySelectorAll('[data-category-section]');
-        let currentCandidate = activeCategoryId;
-        sections.forEach(sec => {
-          const rect = sec.getBoundingClientRect();
-          if (rect.top <= 190) {
-            currentCandidate = sec.getAttribute('data-category-section');
-          }
-        });
-        if (currentCandidate !== activeCategoryId) {
-          updateActiveCategoryHighlight(currentCandidate);
-        }
-
-        lastScrollY = currentY;
-      }, { passive: true });
-    }
-
-    // =========================================================================
-    // БЕЗОТКАЗНОЕ ЛОКАЛЬНОЕ И ОБЛАЧНОЕ СОХРАНЕНИЕ ЧЕРЕЗ FIRESTORE REST API
-    // =========================================================================
-    const LOCAL_STORAGE_KEY = 'sushnyak_custom_state_v2';
-    const FIRESTORE_REST_URL = 'https://firestore.googleapis.com/v1/projects/sushinyak-5ff9c/databases/(default)/documents/sushinyak_global/state?key=AIzaSyCN9xO379TNKdhkD2AZqZAFE3sZ6Dv3ygk';
 
     function getCurrentSerializedCustomState() {
-      const raw = safeGetItem(LOCAL_STORAGE_KEY);
+      const raw = safeGetItem(LOCAL_STORAGE_KEY) || safeGetItem(LEGACY_STORAGE_KEY);
+      let base = {
+        phone: restaurantPhone,
+        customLogo: customLogoDataUrl,
+        addedItems: [],
+        editedItems: {},
+        deletedIds: [],
+        items: {},
+        updatedAt: Date.now()
+      };
       if (raw) {
         try {
           const parsed = JSON.parse(raw);
-          parsed.phone = restaurantPhone;
-          parsed.customLogo = customLogoDataUrl;
-          return parsed;
+          base = { ...base, ...parsed };
         } catch (e) {}
       }
-      return { phone: restaurantPhone, customLogo: customLogoDataUrl, items: {} };
+      base.phone = restaurantPhone;
+      base.customLogo = customLogoDataUrl;
+      if (!Array.isArray(base.addedItems)) base.addedItems = [];
+      if (!base.editedItems || typeof base.editedItems !== 'object') base.editedItems = {};
+      if (!Array.isArray(base.deletedIds)) base.deletedIds = [];
+      if (!base.items || typeof base.items !== 'object') base.items = {};
+      return base;
     }
 
     function applySerializedCustomState(parsed) {
@@ -2929,56 +2257,97 @@
         changed = true;
       }
 
+      // Собираем единую карту изменений из компактного дельта-формата и старого формата items
+      const deletedSet = new Set(Array.isArray(parsed.deletedIds) ? parsed.deletedIds : []);
+      const editsMap = { ...(parsed.editedItems || {}) };
+      const addedList = Array.isArray(parsed.addedItems) ? [...parsed.addedItems] : [];
+
       if (parsed.items && typeof parsed.items === 'object') {
         Object.keys(parsed.items).forEach(id => {
-          const data = parsed.items[id];
-          if (!data) return;
-          const existingIdx = MENU_ITEMS.findIndex(i => i.id === id);
-
-          if (data.deleted) {
-            if (existingIdx !== -1) {
-              MENU_ITEMS.splice(existingIdx, 1);
-              changed = true;
-            }
-            return;
-          }
-
-          if (existingIdx !== -1) {
-            const target = MENU_ITEMS[existingIdx];
-            if (data.name !== undefined && target.name !== data.name) { target.name = data.name; changed = true; }
-            if (data.category !== undefined && target.category !== data.category) { target.category = data.category; changed = true; }
-            if (data.price !== undefined && target.price !== Number(data.price)) { target.price = Number(data.price); changed = true; }
-            if (data.weight !== undefined && target.weight !== data.weight) { target.weight = data.weight; changed = true; }
-            if (data.spicy !== undefined && Boolean(target.spicy) !== Boolean(data.spicy)) { target.spicy = Boolean(data.spicy); changed = true; }
-            if (data.ingredients !== undefined && target.ingredients !== data.ingredients) { target.ingredients = data.ingredients; changed = true; }
-            if (data.customPhoto && target.customPhoto !== data.customPhoto) {
-              target.customPhoto = data.customPhoto;
-              target.photo = data.customPhoto;
-              changed = true;
-            }
-          } else if (data.name && data.category) {
-            const newItem = {
-              id,
-              category: data.category,
-              name: data.name,
-              price: Number(data.price) || 0,
-              weight: data.weight || '',
-              spicy: Boolean(data.spicy),
-              ingredients: data.ingredients || '',
-              customPhoto: data.customPhoto || '',
-              photo: data.customPhoto || ''
-            };
-            if (!newItem.photo) newItem.photo = renderStudioBrochureDish(newItem);
-            MENU_ITEMS.push(newItem);
-            changed = true;
+          const entry = parsed.items[id];
+          if (!entry) return;
+          if (entry.deleted) {
+            deletedSet.add(id);
+          } else if (DEFAULT_MENU_IDS.has(id)) {
+            editsMap[id] = { ...(editsMap[id] || {}), ...entry };
+          } else if (!addedList.some(a => a && a.id === id)) {
+            addedList.push({ id, ...entry });
           }
         });
       }
+
+      // 1. Удаляем позиции, помеченные удалёнными
+      for (let i = MENU_ITEMS.length - 1; i >= 0; i--) {
+        if (deletedSet.has(MENU_ITEMS[i].id)) {
+          MENU_ITEMS.splice(i, 1);
+          changed = true;
+        }
+      }
+
+      // 2. Применяем правки к существующим позициям
+      Object.keys(editsMap).forEach(id => {
+        if (deletedSet.has(id)) return;
+        const data = editsMap[id];
+        if (!data) return;
+        const target = MENU_ITEMS.find(i => i.id === id);
+        if (target) {
+          if (data.name !== undefined && target.name !== data.name) { target.name = data.name; changed = true; }
+          if (data.category !== undefined && target.category !== data.category) { target.category = data.category; changed = true; }
+          if (data.price !== undefined && target.price !== Number(data.price)) { target.price = Number(data.price); changed = true; }
+          if (data.weight !== undefined && target.weight !== data.weight) { target.weight = data.weight; changed = true; }
+          if (data.spicy !== undefined && Boolean(target.spicy) !== Boolean(data.spicy)) { target.spicy = Boolean(data.spicy); changed = true; }
+          if (data.ingredients !== undefined && target.ingredients !== data.ingredients) { target.ingredients = data.ingredients; changed = true; }
+          if (data.customPhoto !== undefined && target.customPhoto !== data.customPhoto) {
+            target.customPhoto = data.customPhoto;
+            if (data.customPhoto) target.photo = data.customPhoto;
+            changed = true;
+          }
+        }
+      });
+
+      // 3. Добавляем или обновляем новые позиции, созданные админом
+      addedList.forEach(data => {
+        if (!data || !data.id || deletedSet.has(data.id)) return;
+        const existing = MENU_ITEMS.find(i => i.id === data.id);
+        if (existing) {
+          if (data.name !== undefined && existing.name !== data.name) { existing.name = data.name; changed = true; }
+          if (data.category !== undefined && existing.category !== data.category) { existing.category = data.category; changed = true; }
+          if (data.price !== undefined && existing.price !== Number(data.price)) { existing.price = Number(data.price); changed = true; }
+          if (data.weight !== undefined && existing.weight !== data.weight) { existing.weight = data.weight; changed = true; }
+          if (data.spicy !== undefined && Boolean(existing.spicy) !== Boolean(data.spicy)) { existing.spicy = Boolean(data.spicy); changed = true; }
+          if (data.ingredients !== undefined && existing.ingredients !== data.ingredients) { existing.ingredients = data.ingredients; changed = true; }
+          if (data.customPhoto && existing.customPhoto !== data.customPhoto) {
+            existing.customPhoto = data.customPhoto;
+            existing.photo = data.customPhoto;
+            changed = true;
+          }
+        } else if (data.name && data.category) {
+          const newItem = {
+            id: data.id,
+            category: data.category,
+            name: data.name,
+            price: Number(data.price) || 0,
+            weight: data.weight || '',
+            spicy: Boolean(data.spicy),
+            ingredients: data.ingredients || 'Фирменное блюдо СУШНЯК',
+            customPhoto: data.customPhoto || '',
+            photo: data.customPhoto || ''
+          };
+          if (!newItem.photo) newItem.photo = renderStudioBrochureDish(newItem);
+          MENU_ITEMS.push(newItem);
+          changed = true;
+        }
+      });
+
+      if (parsed.updatedAt) {
+        cloudSyncState.lastAppliedUpdatedAt = Math.max(cloudSyncState.lastAppliedUpdatedAt, Number(parsed.updatedAt) || 0);
+      }
+
       return changed;
     }
 
     function loadSavedLocalCustomizations() {
-      const raw = safeGetItem(LOCAL_STORAGE_KEY);
+      const raw = safeGetItem(LOCAL_STORAGE_KEY) || safeGetItem(LEGACY_STORAGE_KEY);
       if (!raw) return;
       try {
         const parsed = JSON.parse(raw);
@@ -2986,47 +2355,208 @@
       } catch (e) {}
     }
 
+    async function pushStateToCloud(stateObj) {
+      const jsonStr = JSON.stringify(stateObj);
+      const firestoreBody = JSON.stringify({
+        fields: {
+          payload: { stringValue: jsonStr },
+          updatedAt: { integerValue: String(stateObj.updatedAt || Date.now()) }
+        }
+      });
+
+      let savedOk = false;
+      let lastErrText = '';
+
+      // 1. Запись в основной и резервный документ Firestore (sushinyak-5ff9c)
+      for (const url of [FIRESTORE_DOC_URL, FIRESTORE_LEGACY_URL]) {
+        try {
+          const res = await fetch(`${url}&_t=${Date.now()}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
+            body: firestoreBody
+          });
+          if (res.ok) {
+            savedOk = true;
+          } else {
+            const errJson = await res.json().catch(() => ({}));
+            const msg = (errJson && errJson.error && errJson.error.message) || `HTTP ${res.status}`;
+            lastErrText = msg;
+          }
+        } catch (err) {
+          lastErrText = err && err.message ? err.message : 'Ошибка сети';
+        }
+      }
+
+      // 2. Резервная запись в Realtime Database (если в проекте включена RTDB)
+      if (!savedOk) {
+        for (const rtdbUrl of RTDB_FALLBACK_URLS) {
+          try {
+            const res = await fetch(`${rtdbUrl}?_t=${Date.now()}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              cache: 'no-store',
+              body: jsonStr
+            });
+            if (res.ok) {
+              savedOk = true;
+              break;
+            }
+          } catch (e) {}
+        }
+      }
+
+      if (savedOk) {
+        updateAdminCloudBadge(
+          true,
+          'Облако синхронизировано',
+          `Все изменения успешно сохранены в облаке Firebase (sushinyak-5ff9c) в ${new Date().toLocaleTimeString()}. Они сразу доступны на всех других устройствах.`
+        );
+      } else {
+        updateAdminCloudBadge(
+          false,
+          'База не создана в Firebase (нажмите)',
+          `Ответ сервера Firebase: ${lastErrText || 'База данных (default) ещё не создана в консоли Firebase'}. Нажмите Create database -> Start in test mode по ссылке ниже.`
+        );
+      }
+      return savedOk;
+    }
+
     function saveCustomStateEverywhere(itemUpdateId, itemPayload) {
       const state = getCurrentSerializedCustomState();
       state.phone = restaurantPhone;
       state.customLogo = customLogoDataUrl;
+      state.updatedAt = Date.now();
+
       if (itemUpdateId && itemPayload) {
         if (!state.items) state.items = {};
         state.items[itemUpdateId] = itemPayload;
+
+        if (itemPayload.deleted) {
+          if (!state.deletedIds.includes(itemUpdateId)) {
+            state.deletedIds.push(itemUpdateId);
+          }
+          state.addedItems = state.addedItems.filter(i => i && i.id !== itemUpdateId);
+          delete state.editedItems[itemUpdateId];
+        } else if (DEFAULT_MENU_IDS.has(itemUpdateId)) {
+          state.editedItems[itemUpdateId] = itemPayload;
+          state.deletedIds = state.deletedIds.filter(id => id !== itemUpdateId);
+        } else {
+          const idx = state.addedItems.findIndex(i => i && i.id === itemUpdateId);
+          const fullNewItem = { id: itemUpdateId, ...itemPayload };
+          if (idx !== -1) {
+            state.addedItems[idx] = fullNewItem;
+          } else {
+            state.addedItems.push(fullNewItem);
+          }
+          state.deletedIds = state.deletedIds.filter(id => id !== itemUpdateId);
+        }
       }
+
       const jsonStr = JSON.stringify(state);
       safeSetItem(LOCAL_STORAGE_KEY, jsonStr);
+      safeSetItem(LEGACY_STORAGE_KEY, jsonStr);
+      cloudSyncState.lastAppliedUpdatedAt = state.updatedAt;
 
-      try {
-        fetch(FIRESTORE_REST_URL, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fields: {
-              payload: { stringValue: jsonStr },
-              updatedAt: { integerValue: String(Date.now()) }
-            }
-          })
-        }).catch(() => {});
-      } catch (e) {}
+      pushStateToCloud(state);
     }
 
-    async function pullCloudStateFromFirestoreRest() {
-      try {
-        const res = await fetch(FIRESTORE_REST_URL, { method: 'GET', cache: 'no-store' });
-        if (!res.ok) return;
-        const doc = await res.json();
-        const payloadStr = doc && doc.fields && doc.fields.payload && doc.fields.payload.stringValue;
-        if (!payloadStr) return;
+    async function pullCloudStateFromFirestoreRest(forceRender = false) {
+      let remotePayloadStr = null;
+      let remoteUpdatedAt = 0;
+      let cloudReachable = false;
+      let lastErrText = '';
 
-        safeSetItem(LOCAL_STORAGE_KEY, payloadStr);
-        const parsed = JSON.parse(payloadStr);
+      // 1. Читаем из Firestore с защитой от мобильного кэша
+      for (const url of [FIRESTORE_DOC_URL, FIRESTORE_LEGACY_URL]) {
+        try {
+          const res = await fetch(`${url}&_t=${Date.now()}`, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate' }
+          });
+          if (res.ok) {
+            cloudReachable = true;
+            const doc = await res.json();
+            const pStr = doc && doc.fields && doc.fields.payload && doc.fields.payload.stringValue;
+            const uAt = Number(doc && doc.fields && doc.fields.updatedAt && doc.fields.updatedAt.integerValue) || 0;
+            if (pStr && uAt >= remoteUpdatedAt) {
+              remoteUpdatedAt = uAt;
+              remotePayloadStr = pStr;
+            }
+          } else if (res.status === 404) {
+            const errJson = await res.json().catch(() => ({}));
+            const msg = (errJson && errJson.error && errJson.error.message) || '';
+            if (msg.includes('Document') && msg.includes('not found')) {
+              // База Firestore создана и работает, просто документ ещё не создан — создаём его!
+              cloudReachable = true;
+            } else {
+              lastErrText = msg || 'База Firestore (default) ещё не создана в консоли';
+            }
+          } else {
+            const errJson = await res.json().catch(() => ({}));
+            lastErrText = (errJson && errJson.error && errJson.error.message) || `HTTP ${res.status}`;
+          }
+        } catch (e) {
+          lastErrText = e && e.message ? e.message : 'Ошибка соединения';
+        }
+      }
+
+      // 2. Если Firestore недоступен, проверяем резервный Realtime Database
+      if (!cloudReachable && !remotePayloadStr) {
+        for (const rtdbUrl of RTDB_FALLBACK_URLS) {
+          try {
+            const res = await fetch(`${rtdbUrl}?_t=${Date.now()}`, { method: 'GET', cache: 'no-store' });
+            if (res.ok) {
+              const data = await res.json();
+              if (data && typeof data === 'object') {
+                cloudReachable = true;
+                remotePayloadStr = JSON.stringify(data);
+                remoteUpdatedAt = Number(data.updatedAt) || Date.now();
+                break;
+              }
+            }
+          } catch (e) {}
+        }
+      }
+
+      if (cloudReachable) {
+        updateAdminCloudBadge(
+          true,
+          'Облако синхронизировано',
+          `Соединение с базой Firebase (sushinyak-5ff9c) активно. Проверено в ${new Date().toLocaleTimeString()}.`
+        );
+      } else if (lastErrText) {
+        updateAdminCloudBadge(
+          false,
+          'База не создана в Firebase (нажмите)',
+          `Ответ Firebase: ${lastErrText}`
+        );
+      }
+
+      if (!remotePayloadStr) return;
+
+      try {
+        const parsed = JSON.parse(remotePayloadStr);
+        const incomingTime = Number(parsed.updatedAt) || remoteUpdatedAt || 0;
+        if (!forceRender && incomingTime > 0 && incomingTime < cloudSyncState.lastAppliedUpdatedAt) {
+          return;
+        }
+
+        safeSetItem(LOCAL_STORAGE_KEY, remotePayloadStr);
+        safeSetItem(LEGACY_STORAGE_KEY, remotePayloadStr);
         const changed = applySerializedCustomState(parsed);
-        if (changed) {
+        if (changed || forceRender) {
           const searchInput = document.getElementById('menu-search-input');
           renderMenu(searchInput ? searchInput.value : '');
           syncCartUI(false);
-          if (currentSheetItem) populateDishSheet(currentSheetItem);
+          if (currentSheetItem) {
+            const updatedSheetItem = MENU_ITEMS.find(i => i.id === currentSheetItem.id);
+            if (updatedSheetItem) {
+              currentSheetItem = updatedSheetItem;
+              populateDishSheet(updatedSheetItem);
+            }
+          }
         }
       } catch (e) {}
     }
@@ -3131,19 +2661,20 @@
         badge.classList.remove('hidden');
         badge.classList.add('flex');
         closeAdminLoginModal();
+        pullCloudStateFromFirestoreRest(true);
       } else {
         document.getElementById('admin-login-error').classList.remove('hidden');
       }
     };
 
-    window.logoutAdmin = function() {
-      isAdmin = false;
-      document.getElementById('admin-login-user').value = '';
-      document.getElementById('admin-login-pass').value = '';
-      const badge = document.getElementById('admin-active-badge');
-      badge.classList.add('hidden');
-      badge.classList.remove('flex');
-      closeAdminLoginModal();
+    window.handleAdminLogoUpload = async function(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await compressImageToDataURL(file, 520, 0.8, true);
+        document.getElementById('edit-logo-preview').src = dataUrl;
+        document.getElementById('edit-logo-url-input').value = dataUrl;
+      } catch (e) {}
     };
 
     function populateAdminCategorySelect(selectedCatId) {
@@ -3164,14 +2695,14 @@
       document.getElementById('edit-item-weight').value = '';
       document.getElementById('edit-item-spicy').checked = false;
       document.getElementById('edit-item-ingredients').value = '';
-      const defaultPreview = renderStudioBrochureDish({ category: activeCategoryId || 'cold-rolls', name: '' });
-      document.getElementById('edit-item-preview').src = defaultPreview;
-      document.getElementById('edit-item-photo-url').value = '';
-      document.getElementById('edit-item-status').classList.add('hidden');
-      document.getElementById('delete-item-btn').classList.add('hidden');
-
-      document.getElementById('admin-item-modal').classList.add('open');
-      syncModalBlurBodyState();
+    window.handleAdminItemPhotoUpload = async function(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await compressImageToDataURL(file, 460, 0.78, false);
+        document.getElementById('edit-item-preview').src = dataUrl;
+        document.getElementById('edit-item-photo-url').value = dataUrl;
+      } catch (e) {}
     };
 
     window.openAdminItemEditor = function() {
@@ -3422,15 +2953,15 @@
       window.addEventListener('resize', syncMorphRowWidthVar, { passive: true });
       renderCategoryStrip();
       renderMenu('');
-      syncCartUI(false);
-      updateHeaderMorphState();
-      setupMenuScrollListener();
-      initSheetSwipeToClose();
-      tryLoadLocalBrochureFiles();
-
-      // Фоновая синхронизация с облаком Firebase (sushinyak-5ff9c)
+      // Фоновая синхронизация с облаком Firebase (sushinyak-5ff9c) каждые 3.5 сек + при возврате во вкладку
       pullCloudStateFromFirestoreRest();
-      setInterval(pullCloudStateFromFirestoreRest, 8000);
+      setInterval(() => pullCloudStateFromFirestoreRest(false), 3500);
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          pullCloudStateFromFirestoreRest(false);
+        }
+      });
+      window.addEventListener('focus', () => pullCloudStateFromFirestoreRest(false));
 
       const searchInput = document.getElementById('menu-search-input');
       const menuPane = document.getElementById('view-menu');
