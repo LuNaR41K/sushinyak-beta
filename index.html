@@ -17,7 +17,8 @@
       --brand-gold: #f5b324;
       --ios-spring: cubic-bezier(0.28, 0.84, 0.2, 1);
       --ios-fluid: cubic-bezier(0.22, 1, 0.36, 1);
-      --ios-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+      --ios-bounce: cubic-bezier(0.34, 1.28, 0.64, 1);
+      --ios-smooth: cubic-bezier(0.32, 0.72, 0, 1);
     }
 
     * {
@@ -64,8 +65,8 @@
       transform: scale(1) translate3d(0, 0, 0);
       border-radius: 0px;
       transition: 
-        transform 0.44s var(--ios-fluid), 
-        border-radius 0.44s var(--ios-fluid);
+        transform 0.682s var(--ios-fluid), 
+        border-radius 0.682s var(--ios-fluid);
       transform-origin: center center;
     }
 
@@ -80,7 +81,7 @@
     }
 
     #sticky-controls-host {
-      transition: opacity 0.32s var(--ios-fluid);
+      transition: opacity 0.496s var(--ios-fluid);
     }
 
     #floating-bottom-dock {
@@ -96,7 +97,7 @@
       flex-direction: column;
       align-items: center;
       gap: 10px;
-      transition: opacity 0.32s var(--ios-fluid);
+      transition: opacity 0.496s var(--ios-fluid);
     }
 
     body.sheet-open #sticky-controls-host,
@@ -122,7 +123,7 @@
       background: linear-gradient(180deg, rgba(20, 21, 24, 0.56) 0%, rgba(20, 21, 24, 0.24) 55%, rgba(20, 21, 24, 0) 100%);
       mask-image: linear-gradient(180deg, #000 0%, #000 38%, rgba(0, 0, 0, 0.6) 72%, transparent 100%);
       -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 38%, rgba(0, 0, 0, 0.6) 72%, transparent 100%);
-      transition: height 0.42s var(--ios-fluid), opacity 0.32s var(--ios-fluid);
+      transition: height 0.65s var(--ios-fluid), opacity 0.496s var(--ios-fluid);
     }
 
     #top-progressive-blur.cart-mode {
@@ -352,7 +353,7 @@
       -webkit-backdrop-filter: blur(24px);
       border: 1px solid rgba(255, 255, 255, 0.09);
       border-radius: 26px;
-      transition: transform 0.32s var(--ios-fluid), border-color 0.3s ease, box-shadow 0.3s ease;
+      transition: transform 0.496s var(--ios-fluid), border-color 0.465s ease, box-shadow 0.465s ease;
       position: relative;
       overflow: hidden;
     }
@@ -382,21 +383,21 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      transition: transform 0.55s var(--ios-fluid);
+      transition: transform 0.853s var(--ios-fluid);
     }
 
     .cart-item-outer {
       margin-bottom: 12px;
       transition: 
-        height 0.34s cubic-bezier(0.25, 1.02, 0.4, 1),
-        margin-bottom 0.34s cubic-bezier(0.25, 1.02, 0.4, 1),
-        margin-top 0.34s cubic-bezier(0.25, 1.02, 0.4, 1),
-        padding-top 0.34s cubic-bezier(0.25, 1.02, 0.4, 1),
-        padding-bottom 0.34s cubic-bezier(0.25, 1.02, 0.4, 1),
-        opacity 0.28s ease;
+        height 0.527s var(--ios-fluid),
+        margin-bottom 0.527s var(--ios-fluid),
+        margin-top 0.527s var(--ios-fluid),
+        padding-top 0.527s var(--ios-fluid),
+        padding-bottom 0.527s var(--ios-fluid),
+        opacity 0.434s ease;
     }
     .cart-swipe-item {
-      transition: transform 0.34s cubic-bezier(0.25, 1.02, 0.4, 1), opacity 0.28s ease, filter 0.28s ease;
+      transition: transform 0.527s var(--ios-fluid), opacity 0.434s ease, filter 0.434s ease;
       touch-action: pan-y;
     }
     .cart-swipe-item.swiping {
@@ -415,7 +416,7 @@
     #dish-sheet-modal {
       visibility: hidden;
       pointer-events: none;
-      transition: visibility 0.46s linear;
+      transition: visibility 0.62s linear;
     }
     #dish-sheet-modal.open {
       visibility: visible;
@@ -428,7 +429,7 @@
       background: rgba(10, 10, 14, 0.34);
       backdrop-filter: blur(10px) saturate(160%);
       -webkit-backdrop-filter: blur(10px) saturate(160%);
-      transition: opacity 0.42s var(--ios-fluid);
+      transition: opacity 0.56s var(--ios-fluid);
     }
     #dish-sheet-modal.open #dish-sheet-backdrop {
       opacity: 1;
@@ -436,7 +437,7 @@
     }
     #dish-sheet-panel {
       transform: translate3d(0, 105%, 0);
-      transition: transform 0.46s var(--ios-fluid);
+      transition: transform 0.62s var(--ios-fluid);
     }
     #dish-sheet-modal.open #dish-sheet-panel {
       transform: translate3d(0, 0, 0);
@@ -485,8 +486,10 @@
       display: flex;
       width: 200%;
       height: 100dvh;
-      transition: transform 0.52s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: transform 0.5s cubic-bezier(0.25, 1, 0.4, 1);
       will-change: transform;
+      backface-visibility: hidden;
+      transform: translate3d(0, 0, 0);
       align-items: stretch;
     }
     .view-slide-pane {
@@ -505,8 +508,174 @@
       100% { transform: translateY(0) scale(1); }
     }
     .animate-pop {
-      animation: popScale 0.44s var(--ios-bounce);
+      animation: popScale 0.682s var(--ios-bounce);
     }
+  
+    /* ====== Плавность: общие переопределения и новые анимации ====== */
+    .transition { transition-duration: 0.45s !important; transition-timing-function: var(--ios-smooth) !important; }
+    .transition-all, .transition-transform, .transition-opacity, .transition-colors { transition-timing-function: var(--ios-smooth) !important; }
+    .duration-300 { transition-duration: 0.55s !important; }
+    .duration-200 { transition-duration: 0.4s !important; }
+    #dish-sheet-panel, #views-slider-track { will-change: transform; backface-visibility: hidden; }
+    #dish-sheet-backdrop, #nav-indicator, #cart-floating-price-pill { will-change: opacity, transform; }
+    #floating-dock-count, [data-cart-badge] { white-space: nowrap; }
+    .view-slide-pane { contain: layout paint; }
+    .dish-card, .cat-chip { will-change: transform; }
+
+    /* Анимированный индикатор активной вкладки (скользит между «Меню» и «Корзина») */
+    #bottom-nav-pill { position: relative; }
+    #nav-indicator {
+      position: absolute;
+      top: 6px;
+      bottom: 6px;
+      left: 6px;
+      width: calc((100% - 18px) / 2);
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #e5391a 0%, #f25c22 100%);
+      box-shadow: 0 8px 22px rgba(229, 57, 26, 0.42), inset 0 1px 0.5px rgba(255, 255, 255, 0.3);
+      transform: translate3d(0, 0, 0);
+      transition: transform 0.5s cubic-bezier(0.25, 1, 0.4, 1);
+      pointer-events: none;
+      z-index: 0;
+    }
+    #nav-indicator.on-cart { transform: translate3d(calc(100% + 6px), 0, 0); }
+
+    /* Появление / исчезновение небольших элементов (кнопка «Очистить», плашка цены) */
+    @keyframes smoothIn {
+      from { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.9); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    @keyframes smoothOut {
+      from { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+      to   { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.92); }
+    }
+    .smooth-in  { animation: smoothIn 0.7s var(--ios-smooth) backwards; }
+    .smooth-out { animation: smoothOut 0.45s var(--ios-smooth) forwards; pointer-events: none; }
+
+    /* Бейдж количества на карточке и цифра количества в корзине */
+    @keyframes badgeIn { from { opacity: 0; transform: scale(0.4); } to { opacity: 1; transform: scale(1); } }
+    .badge-in { animation: badgeIn 0.55s var(--ios-bounce) backwards; }
+    @keyframes qtyBump { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
+    .qty-bump { display: inline-block; animation: qtyBump 0.55s var(--ios-smooth); }
+
+    /* Корзина: плавное появление позиций и пустого состояния */
+    .cart-item-outer { will-change: height, opacity; }
+    @keyframes cartItemIn {
+      from { opacity: 0; transform: translate3d(0, 18px, 0) scale(0.96); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    .cart-item-outer.is-in .cart-swipe-item { animation: cartItemIn 0.8s var(--ios-smooth) backwards; }
+
+    .cart-empty-wrap { will-change: height, opacity; }
+    @keyframes cartEmptyIn {
+      from { opacity: 0; transform: translate3d(0, 26px, 0) scale(0.94); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    @keyframes cartStagIn {
+      from { opacity: 0; transform: translate3d(0, 16px, 0) scale(0.96); }
+      to   { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+    }
+    .cart-empty-wrap.is-in .cart-empty-card { animation: cartEmptyIn 0.9s var(--ios-smooth) backwards; }
+    .cart-empty-wrap.is-in .cart-stag {
+      animation: cartStagIn 0.85s var(--ios-smooth) backwards;
+      animation-delay: calc(var(--i, 0) * 110ms + 160ms);
+    }
+    .cart-empty-card { transition: transform 0.55s var(--ios-smooth), opacity 0.45s ease; }
+    .cart-empty-wrap.is-leaving .cart-empty-card { transform: translate3d(0, -14px, 0) scale(0.95); opacity: 0; }
+
+    /* ===== Кнопка «В корзину / В корзине» с − и + ===== */
+    .add-ctl {
+      position: relative; width: 100%; height: 42px; border-radius: 12px;
+      display: grid; grid-template-columns: 36px minmax(0, 1fr) 36px; align-items: center;
+      background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.15);
+      color: #fff; font-weight: 800; font-size: 11.5px; cursor: pointer; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.45s var(--ios-smooth), border-color 0.45s var(--ios-smooth), transform 0.3s var(--ios-smooth);
+    }
+    .add-ctl:active { transform: scale(0.97); }
+    .add-ctl.is-in { background: linear-gradient(90deg, #e5391a, #f25c22); border-color: rgba(255,255,255,0.28); }
+    .add-ctl-btn {
+      width: 28px; height: 28px; margin: 0 4px; border-radius: 999px; border: 0; padding: 0;
+      display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer;
+      background: rgba(255,255,255,0.22);
+      opacity: 0; transform: scale(0.6); pointer-events: none;
+      transition: opacity 0.35s var(--ios-smooth), transform 0.45s var(--ios-spring), background 0.25s ease;
+    }
+    .add-ctl-btn:active { background: rgba(255,255,255,0.4); }
+    .add-ctl.is-in .add-ctl-btn { opacity: 1; transform: scale(1); pointer-events: auto; }
+    .add-ctl-label {
+      grid-column: 1 / -1; grid-row: 1; justify-self: center; display: flex; align-items: center; gap: 5px;
+      white-space: nowrap; overflow: hidden; pointer-events: none; transition: none;
+    }
+    .add-ctl.is-in .add-ctl-label { grid-column: 2; }
+    .add-ctl [data-act="minus"] { grid-column: 1; grid-row: 1; }
+    .add-ctl [data-act="plus"] { grid-column: 3; grid-row: 1; }
+    .add-ctl-plusico { width: 15px; height: 15px; color: #fb923c; flex-shrink: 0; transition: opacity 0.3s ease, width 0.3s ease; }
+    .add-ctl.is-in .add-ctl-plusico { display: none; }
+    .add-ctl-dot {
+      position: absolute; top: -8px; right: -6px; min-width: 21px; height: 21px; padding: 0 5px; border-radius: 999px;
+      background: #fff; color: #e5391a; font-size: 11px; font-weight: 900; line-height: 21px; text-align: center;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.45); pointer-events: none; z-index: 3;
+      opacity: 0; transform: scale(0.3);
+      transition: opacity 0.3s var(--ios-smooth), transform 0.5s var(--ios-bounce);
+    }
+    .add-ctl.is-in .add-ctl-dot { opacity: 1; transform: scale(1); }
+
+    /* ===== Свайп-удаление: красная зона с мусоркой ===== */
+    .cart-trash-zone {
+      position: absolute; top: 0; bottom: 0; right: 0; width: 0; opacity: 0; border-radius: 16px; overflow: hidden;
+      background: linear-gradient(135deg, #f0432a 0%, #d62a14 100%);
+      display: flex; align-items: center; justify-content: center; pointer-events: none;
+    }
+    .cart-trash-zone.snap { transition: width 0.42s var(--ios-smooth), opacity 0.35s var(--ios-smooth); }
+    .cart-trash-zone.armed { background: linear-gradient(135deg, #ff5a3d 0%, #e5321a 100%); }
+    .cart-trash-ico { overflow: visible; width: 30px; height: 30px; color: #fff; flex-shrink: 0; transition: transform 0.35s var(--ios-bounce); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); }
+    .cart-trash-zone.armed .cart-trash-ico { transform: scale(1.14); }
+    .cart-swipe-item.snapback { transition: transform 0.5s var(--ios-smooth) !important; }
+
+    /* ===== Выбор положения новой категории ===== */
+    .cat-pos-slot {
+      display: flex; align-items: center; justify-content: center; width: 100%; height: 22px; border-radius: 12px;
+      border: 1.5px dashed rgba(255,255,255,0.14); background: transparent; color: rgba(255,255,255,0.45);
+      font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; overflow: hidden;
+      transition: height 0.45s var(--ios-smooth), background 0.35s ease, border-color 0.35s ease, color 0.35s ease;
+    }
+    .cat-pos-slot:hover { border-color: rgba(251,146,60,0.6); color: #fdba74; }
+    .cat-pos-slot.sel {
+      height: 46px; border: 1.5px solid #fb923c; color: #fff; font-size: 12px;
+      background: linear-gradient(90deg, rgba(229,57,26,0.35), rgba(242,92,34,0.2));
+      box-shadow: 0 0 0 4px rgba(251,146,60,0.12);
+    }
+    .cat-pos-slot .cat-pos-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 0 10px; }
+    .cat-pos-row {
+      padding: 9px 12px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+      font-size: 11px; font-weight: 800; letter-spacing: 0.06em; color: #d4d4d8; text-transform: uppercase;
+    }
+    .cat-rename-btn {
+      width: 28px; height: 28px; border-radius: 999px; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.18); color: #fdba74; cursor: pointer;
+      transition: background 0.3s ease, transform 0.3s var(--ios-smooth);
+    }
+    .cat-rename-btn:active { transform: scale(0.88); background: rgba(255,255,255,0.22); }
+  
+    .add-ctl-lg { height: 56px; border-radius: 18px; font-size: 16px; grid-template-columns: 56px minmax(0, 1fr) 56px;
+      box-shadow: 0 10px 30px rgba(229,57,26,0.35); background: linear-gradient(90deg, #e5391a, #f25c22); border-color: rgba(255,255,255,0.22); }
+    .add-ctl-lg .add-ctl-btn { width: 40px; height: 40px; margin: 0 8px; }
+    .add-ctl-lg .add-ctl-plusico { color: #fff; width: 18px; height: 18px; }
+    .add-ctl-lg .add-ctl-dot { top: -10px; right: -4px; min-width: 24px; height: 24px; line-height: 24px; font-size: 12px; }
+
+    /* ===== Единый стиль кнопок администратора ===== */
+    .admin-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; white-space: nowrap;
+      padding: 7px 14px; border-radius: 999px; font-size: 12px; font-weight: 800; color: #fff;
+      background: rgba(255,255,255,0.10); border: 1px solid rgba(255,255,255,0.22);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+      transition: background 0.3s var(--ios-smooth), transform 0.3s var(--ios-smooth);
+    }
+    .admin-btn.hidden { display: none; }
+    .admin-btn:hover { background: rgba(255,255,255,0.20); }
+    .admin-btn:active { transform: scale(0.95); }
+    .admin-btn svg { color: #fb923c; flex-shrink: 0; }
   </style>
 </head>
 <body class="brochure-bg antialiased selection:bg-orange-500 selection:text-white">
@@ -531,7 +700,7 @@
         </div>
         <input id="menu-search-input" 
                type="text" 
-               placeholder="Найти роллы, пиццу, том ям, состав..." 
+               placeholder="Найти роллы, пиццу, том ям..." 
                autocomplete="off"
                class="w-full bg-transparent text-white placeholder-zinc-300/75 text-sm sm:text-base font-medium pl-3 pr-9 focus:outline-none morph-bar-transition opacity-100" />
         <button id="clear-search-btn" 
@@ -617,21 +786,30 @@
                       <button id="admin-cloud-status-btn"
                               type="button"
                               onclick="event.stopPropagation(); openAdminCloudHelpModal();"
-                              class="px-3 py-1 rounded-full bg-zinc-800/90 border border-white/15 text-zinc-200 text-[11px] font-bold tracking-wide inline-flex items-center gap-1.5 cursor-pointer hover:bg-zinc-700/90 transition">
+                              class="admin-btn">
                         <span id="admin-cloud-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                         <span id="admin-cloud-text">Проверка облака...</span>
                       </button>
                       <button type="button"
                               onclick="event.stopPropagation(); openAdminCreateItemModal();"
-                              class="px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white text-xs font-extrabold shadow-lg hover:brightness-110 active:scale-95 transition inline-flex items-center gap-1.5 cursor-pointer">
+                              class="admin-btn">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
                         <span>+ Добавить позицию</span>
                       </button>
+                      <div class="basis-full h-0"></div>
+                      <button type="button"
+                              onclick="event.stopPropagation(); openCategoryCreate();"
+                              class="admin-btn">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
+                        </svg>
+                        <span>+ Добавить категорию</span>
+                      </button>
                       <button type="button"
                               onclick="event.stopPropagation(); openAdminLogoModal();"
-                              class="px-3.5 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-extrabold shadow-lg active:scale-95 transition inline-flex items-center gap-1.5 cursor-pointer">
+                              class="admin-btn">
                         <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
                         </svg>
@@ -743,11 +921,11 @@
               </button>
             </div>
 
-            <div id="cart-items-container">
+            <div id="cart-items-container" class="flow-root">
               <!-- Генерируется через JS -->
             </div>
 
-            <div id="cart-summary-card" class="mt-4 ios-dock-glass rounded-3xl p-5 sm:p-6">
+            <div id="cart-summary-card" class="mt-1 ios-dock-glass rounded-3xl p-5 sm:p-6">
               <div class="flex items-center justify-between text-zinc-300 text-sm mb-2">
                 <span>Количество позиций:</span>
                 <span id="cart-total-count" class="font-bold text-white">0 шт.</span>
@@ -784,13 +962,14 @@
          onclick="switchTab('cart')"
          class="hidden pointer-events-auto ios-dock-glass rounded-full p-1 pr-3.5 pl-2.5 items-center gap-2 cursor-pointer transition-all duration-300 hover:scale-105 active:scale-95">
       <span id="floating-dock-price" class="brochure-price-pill text-xs sm:text-sm px-3 py-0.5">0₽</span>
-      <span id="floating-dock-count" class="text-xs font-extrabold text-white tracking-wide">0 шт. в корзине</span>
+      <span id="floating-dock-count" class="whitespace-nowrap text-xs font-extrabold text-white tracking-wide">0&nbsp;шт. в&nbsp;корзине</span>
     </div>
 
     <nav id="bottom-nav-pill" class="ios-dock-glass pointer-events-auto rounded-full p-1.5 flex items-center gap-1.5 w-full">
+      <span id="nav-indicator" aria-hidden="true"></span>
       <button id="tab-btn-menu" 
               onclick="switchTab('menu')" 
-              class="flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white shadow-lg cursor-pointer">
+              class="relative z-10 flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-colors duration-300 text-white cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
         </svg>
@@ -799,7 +978,7 @@
 
       <button id="tab-btn-cart" 
               onclick="switchTab('cart')" 
-              class="flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 text-zinc-300 hover:text-white relative cursor-pointer">
+              class="relative z-10 flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-colors duration-300 text-zinc-300 hover:text-white cursor-pointer">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
         </svg>
@@ -849,7 +1028,7 @@
 
           <button id="sheet-admin-edit-btn"
                   onclick="openAdminItemEditor()"
-                  class="hidden shrink-0 px-3.5 py-2 rounded-2xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 text-emerald-300 font-bold text-xs items-center gap-1.5 transition cursor-pointer">
+                  class="admin-btn hidden shrink-0">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
             </svg>
@@ -866,9 +1045,7 @@
       <div class="sheet-bottom-blur-bar"></div>
 
       <div class="absolute bottom-0 left-0 right-0 z-40 pt-4 pb-5 px-5 sm:px-8 pointer-events-none">
-        <button id="sheet-add-btn" class="pointer-events-auto w-full py-4 rounded-2xl bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-extrabold text-base sm:text-lg shadow-[0_10px_30px_rgba(229,57,26,0.55)] hover:brightness-110 active:scale-[0.98] transition flex items-center justify-center gap-3 cursor-pointer">
-          <span>Добавить в корзину</span>
-        </button>
+<div id="sheet-add-btn" role="group" class="pointer-events-auto add-ctl add-ctl-lg"></div>
       </div>
 
     </div>
@@ -960,6 +1137,29 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- МОДАЛКА КАТЕГОРИИ: СОЗДАНИЕ (С ВЫБОРОМ ПОЛОЖЕНИЯ) И ПЕРЕИМЕНОВАНИЕ        -->
+  <!-- ======================================================================= -->
+  <div id="admin-cat-modal" class="ios-modal-overlay fixed inset-0 z-[175] flex items-center justify-center px-4 py-6 overflow-y-auto">
+    <div onclick="closeCategoryModal()" class="ios-modal-backdrop absolute inset-0"></div>
+    <div class="ios-modal-card relative z-10 w-full max-w-md rounded-3xl p-5 sm:p-6 space-y-4 my-auto">
+      <div class="flex items-center justify-between">
+        <h4 id="admin-cat-modal-title" class="text-lg font-extrabold text-white">Новая категория</h4>
+        <button onclick="closeCategoryModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-300 cursor-pointer">✕</button>
+      </div>
+      <div>
+        <label class="text-xs font-bold text-zinc-300 block mb-1">Название категории</label>
+        <input id="cat-name-input" type="text" maxlength="40" placeholder="Например: Напитки" oninput="onCategoryNameInput()" class="w-full rounded-xl bg-black/35 border border-white/15 px-3.5 py-2.5 text-sm text-white uppercase focus:outline-none focus:border-orange-500" />
+      </div>
+      <div id="cat-pos-wrap">
+        <label class="text-xs font-bold text-zinc-300 block mb-1.5">Положение между другими категориями <span class="text-zinc-500 font-semibold">(нажмите на место)</span></label>
+        <div id="cat-pos-list" class="space-y-1.5 max-h-[42vh] overflow-y-auto pr-1"></div>
+      </div>
+      <p id="cat-modal-error" class="hidden text-xs font-bold text-red-400"></p>
+      <button id="cat-save-btn" onclick="saveCategoryModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-extrabold text-sm shadow-lg active:scale-95 transition cursor-pointer">Создать категорию</button>
     </div>
   </div>
 
@@ -1452,6 +1652,8 @@
     let adminEditorMode = 'edit';
     let cart = [];
     let currentTab = 'menu';
+    const DEFAULT_CATEGORIES = CATEGORIES.map(c => ({ ...c }));
+    let categoriesCustomized = false;
     let activeCategoryId = CATEGORIES[0].id;
     let currentSheetItem = null;
     let isHeaderCollapsed = false;
@@ -2133,7 +2335,9 @@
       const logoOpen = logoModalEl && logoModalEl.classList.contains('open');
       const cloudHelpEl = document.getElementById('admin-cloud-help-modal');
       const cloudHelpOpen = cloudHelpEl && cloudHelpEl.classList.contains('open');
-      if (callOpen || loginOpen || itemOpen || logoOpen || cloudHelpOpen) {
+      const catModalEl = document.getElementById('admin-cat-modal');
+      const catOpen = catModalEl && catModalEl.classList.contains('open');
+      if (callOpen || loginOpen || itemOpen || logoOpen || cloudHelpOpen || catOpen) {
         document.body.classList.add('modal-blur-active');
       } else {
         document.body.classList.remove('modal-blur-active');
@@ -2155,6 +2359,7 @@
       const strip = document.getElementById('expanded-cat-strip');
       if (!strip) return;
       strip.innerHTML = CATEGORIES.map(cat => {
+        if (!isAdmin && !MENU_ITEMS.some(i => i.category === cat.id)) return '';
         const isActive = cat.id === activeCategoryId;
         return `
           <button type="button"
@@ -2207,16 +2412,37 @@
       }
     };
 
+    const ICON_PLUS = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>';
+    const ICON_MINUS = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" viewBox="0 0 24 24"><path d="M5 12h14"/></svg>';
+    function addCtlHTML(id, entry) {
+      return `
+          <div data-add-btn="${id}" role="group" onclick="handleAddCtl('${id}', event)" class="add-ctl ${entry ? 'is-in' : ''}">
+            <button type="button" data-act="minus" aria-label="Убрать одну" class="add-ctl-btn">${ICON_MINUS}</button>
+            <span class="add-ctl-label">
+              <svg class="add-ctl-plusico" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              <span data-label-text>${entry ? 'В корзине' : 'В корзину'}</span>
+            </span>
+            <button type="button" data-act="plus" aria-label="Добавить ещё" class="add-ctl-btn">${ICON_PLUS}</button>
+            <span data-cart-badge class="add-ctl-dot">${entry ? entry.qty : ''}</span>
+          </div>`;
+    }
+
+    window.handleAddCtl = function(id, e) {
+      if (e) e.stopPropagation();
+      const entry = cart.find(c => c.key === id);
+      if (!entry) { addToCart(id); return; }
+      const act = e && e.target && e.target.closest ? e.target.closest('[data-act]') : null;
+      if (!act) return;
+      if (act.getAttribute('data-act') === 'minus') changeCartQty(id, -1);
+      else addToCart(id);
+    };
+
     function createDishCardHTML(item) {
       const weightBadge = item.weight
         ? `<span class="brochure-weight-pill absolute top-2.5 left-2.5 z-10 shadow">${item.weight}</span>`
         : '';
       const spicyIcon = item.spicy ? SPICY_FLAME_SVG : '';
       const inCartObj = cart.find(c => c.key === item.id);
-      const countBadge = inCartObj
-        ? `<span class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-white text-[#e5391a] font-black">${inCartObj.qty}</span>`
-        : '';
-
       return `
         <article onclick="openDishSheet('${item.id}')" 
                  class="dish-card p-3 sm:p-4 flex flex-col justify-between cursor-pointer group">
@@ -2243,15 +2469,7 @@
             </p>
           </div>
 
-          <button type="button"
-                  onclick="handleAddBtnClick('${item.id}', event)"
-                  class="w-full py-2.5 px-3 rounded-xl bg-white/10 hover:bg-gradient-to-r hover:from-[#e5391a] hover:to-[#f25c22] active:scale-95 border border-white/15 text-white font-bold text-xs sm:text-sm transition flex items-center justify-center gap-1.5 cursor-pointer">
-            <svg class="w-4 h-4 text-orange-400 group-hover:text-white transition shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            <span>В корзину</span>
-            ${countBadge}
-          </button>
+          ${addCtlHTML(item.id, inCartObj)}
         </article>
       `;
     }
@@ -2325,18 +2543,26 @@
 
       root.innerHTML = CATEGORIES.map(cat => {
         const items = MENU_ITEMS.filter(i => i.category === cat.id);
-        if (items.length === 0) return '';
+        if (items.length === 0 && !isAdmin) return '';
+        const renameBtn = isAdmin
+          ? `<button type="button" onclick="event.stopPropagation(); openCategoryRename('${cat.id}')" title="Переименовать категорию" class="cat-rename-btn">
+               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+             </button>`
+          : '';
         return `
           <section id="cat-sec-${cat.id}" data-cat-section="${cat.id}" class="space-y-4 scroll-mt-24">
             <div class="flex items-center gap-3">
               <div class="brochure-category-banner text-xs sm:text-sm">
                 ${cat.title}
               </div>
+              ${renameBtn}
               <div class="brochure-category-line"></div>
             </div>
-            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            ${items.length === 0
+              ? '<div class="text-xs text-zinc-500 font-semibold py-3 px-4 rounded-2xl border border-dashed border-white/15">В этой категории пока нет позиций — добавьте первую через «+ Добавить позицию»</div>'
+              : `<div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
               ${items.map(item => createDishCardHTML(item)).join('')}
-            </div>
+            </div>`}
           </section>
         `;
       }).join('');
@@ -2575,14 +2801,16 @@
       const topBlur = document.getElementById('top-progressive-blur');
       const menuPane = document.getElementById('view-menu');
       const cartPane = document.getElementById('view-cart');
+      const navIndicator = document.getElementById('nav-indicator');
+      if (navIndicator) navIndicator.classList.toggle('on-cart', tabName === 'cart');
 
       if (tabName === 'cart') {
         if (track) track.style.transform = 'translate3d(-50%, 0, 0)';
         if (btnCart) {
-          btnCart.className = 'flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white shadow-lg cursor-pointer';
+          btnCart.className = 'relative z-10 flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-colors duration-300 text-white cursor-pointer';
         }
         if (btnMenu) {
-          btnMenu.className = 'flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 text-zinc-300 hover:text-white cursor-pointer';
+          btnMenu.className = 'relative z-10 flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-colors duration-300 text-zinc-300 hover:text-white cursor-pointer';
         }
         if (topBlur) {
           topBlur.classList.add('cart-mode');
@@ -2592,10 +2820,10 @@
       } else {
         if (track) track.style.transform = 'translate3d(0%, 0, 0)';
         if (btnMenu) {
-          btnMenu.className = 'flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white shadow-lg cursor-pointer';
+          btnMenu.className = 'relative z-10 flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-colors duration-300 text-white cursor-pointer';
         }
         if (btnCart) {
-          btnCart.className = 'flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-all duration-300 text-zinc-300 hover:text-white cursor-pointer';
+          btnCart.className = 'relative z-10 flex-1 py-2.5 px-4 rounded-full font-bold text-sm flex items-center justify-center gap-2 transition-colors duration-300 text-zinc-300 hover:text-white cursor-pointer';
         }
         if (topBlur) {
           topBlur.classList.remove('cart-mode');
@@ -2612,6 +2840,96 @@
       addToCart(itemId);
     };
 
+    // =========================================================================
+    // КОРЗИНА: ПЛАВНЫЕ АНИМАЦИИ (появление, удаление, пустое состояние)
+    // =========================================================================
+    const SMOOTH_EASE = 'cubic-bezier(0.32, 0.72, 0, 1)';
+    const CART_ENTER_MS = 700;
+    const CART_LEAVE_MS = 680;
+
+    function getCartItem(id) {
+      return MENU_ITEMS.find(i => i.id === id);
+    }
+
+    // Плавный «счётчик» чисел (сумма, количество)
+    function tweenNumber(el, to, fmt) {
+      if (!el) return;
+      const raw = el.dataset.val;
+      const from = raw === undefined ? to : Number(raw);
+      el.dataset.val = String(to);
+      if (el._tweenRaf) cancelAnimationFrame(el._tweenRaf);
+      if (from === to) {
+        el.textContent = fmt(to);
+        return;
+      }
+      const t0 = performance.now();
+      const dur = 650;
+      const step = (now) => {
+        const p = Math.min(1, (now - t0) / dur);
+        const e = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(Math.round(from + (to - from) * e));
+        if (p < 1) el._tweenRaf = requestAnimationFrame(step);
+      };
+      el._tweenRaf = requestAnimationFrame(step);
+    }
+
+    // Плавно показать / скрыть элемент, который скрывается классом hidden
+    function showSmooth(el, show, displayCls) {
+      if (!el) return;
+      if (show) {
+        if (el._hideTimer) { clearTimeout(el._hideTimer); el._hideTimer = null; }
+        const wasHidden = el.classList.contains('hidden');
+        const wasLeaving = Boolean(el._leaving);
+        el.classList.remove('hidden', 'smooth-out');
+        if (displayCls) el.classList.add(displayCls);
+        el._leaving = false;
+        if (wasHidden || wasLeaving) {
+          el.classList.remove('smooth-in', 'animate-pop');
+          void el.offsetWidth;
+          el.classList.add('smooth-in');
+        }
+      } else {
+        if (el.classList.contains('hidden') || el._leaving) return;
+        el._leaving = true;
+        el.classList.remove('smooth-in', 'animate-pop');
+        void el.offsetWidth;
+        el.classList.add('smooth-out');
+        el._hideTimer = setTimeout(() => {
+          el.classList.add('hidden');
+          if (displayCls) el.classList.remove(displayCls);
+          el.classList.remove('smooth-out');
+          el._leaving = false;
+          el._hideTimer = null;
+        }, 460);
+      }
+    }
+
+    // Обновляет счётчики на карточках меню без перерисовки всего меню
+    function refreshMenuBadges() {
+      document.querySelectorAll('[data-add-btn]').forEach(ctl => {
+        const id = ctl.getAttribute('data-add-btn');
+        const entry = cart.find(c => c.key === id);
+        const dot = ctl.querySelector('[data-cart-badge]');
+        const label = ctl.querySelector('[data-label-text]');
+        const wasIn = ctl.classList.contains('is-in');
+        if (entry) {
+          ctl.classList.add('is-in');
+          if (label) label.textContent = 'В корзине';
+          if (dot && dot.textContent !== String(entry.qty)) {
+            dot.textContent = String(entry.qty);
+            if (wasIn) {
+              dot.classList.remove('qty-bump');
+              void dot.offsetWidth;
+              dot.classList.add('qty-bump');
+            }
+          }
+        } else {
+          ctl.classList.remove('is-in');
+          if (label) label.textContent = ctl.getAttribute('data-label-out') || 'В корзину';
+        }
+      });
+    }
+
     window.addToCart = function(itemId) {
       const item = MENU_ITEMS.find(i => i.id === itemId);
       if (!item) return;
@@ -2622,8 +2940,7 @@
         cart.push({ key: itemId, qty: 1 });
       }
       syncCartUI(true);
-      const searchInput = document.getElementById('menu-search-input');
-      renderMenu(searchInput ? searchInput.value : '');
+      refreshMenuBadges();
     };
 
     window.changeCartQty = function(itemId, delta) {
@@ -2635,50 +2952,220 @@
         return;
       }
       syncCartUI(false);
-      const searchInput = document.getElementById('menu-search-input');
-      renderMenu(searchInput ? searchInput.value : '');
+      refreshMenuBadges();
     };
 
     window.animateRemoveCartItem = function(itemId) {
-      const outer = document.querySelector(`[data-cart-outer="${itemId}"]`);
-      const inner = document.querySelector(`[data-cart-inner="${itemId}"]`);
-      if (outer && inner) {
-        const startH = outer.offsetHeight;
-        outer.style.height = startH + 'px';
-        outer.style.overflow = 'hidden';
-        inner.style.transform = 'translate3d(-110%, 0, 0)';
-        inner.style.filter = 'blur(12px)';
-        inner.style.opacity = '0';
-
-        requestAnimationFrame(() => {
-          outer.style.height = '0px';
-          outer.style.marginBottom = '0px';
-          outer.style.opacity = '0';
-        });
-
-        setTimeout(() => {
-          cart = cart.filter(c => c.key !== itemId);
-          syncCartUI(false);
-          const searchInput = document.getElementById('menu-search-input');
-          renderMenu(searchInput ? searchInput.value : '');
-        }, 330);
-      } else {
-        cart = cart.filter(c => c.key !== itemId);
-        syncCartUI(false);
-        const searchInput = document.getElementById('menu-search-input');
-        renderMenu(searchInput ? searchInput.value : '');
-      }
+      if (!cart.some(c => c.key === itemId)) return;
+      cart = cart.filter(c => c.key !== itemId);
+      syncCartUI(false);
+      refreshMenuBadges();
     };
 
     window.clearEntireCart = function() {
       cart = [];
       syncCartUI(false);
-      const searchInput = document.getElementById('menu-search-input');
-      renderMenu(searchInput ? searchInput.value : '');
+      refreshMenuBadges();
     };
 
-    function syncCartUI(animateBadge = false) {
+    function buildCartItemElement(item, entry) {
+      const wrap = document.createElement('div');
+      const itemTotal = item.price * entry.qty;
+      wrap.innerHTML = `
+          <div data-cart-outer="${item.id}" class="cart-item-outer relative rounded-2xl">
+            <div data-trash-zone class="cart-trash-zone">
+              <svg class="cart-trash-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                <g data-trash-lid transform="rotate(0 5 7)"><path d="M3.5 7h17"/><path d="M9.5 7V5.2c0-.7.5-1.2 1.2-1.2h2.6c.7 0 1.2.5 1.2 1.2V7"/></g>
+                <path d="M6 9.5l.9 9.6A2 2 0 008.9 21h6.2a2 2 0 002-1.9l.9-9.6" fill="currentColor" fill-opacity="0.18"/>
+                <path d="M10 12.5v5M14 12.5v5"/>
+              </svg>
+            </div>
+            <div data-cart-inner="${item.id}" 
+                 data-item-id="${item.id}"
+                 class="cart-swipe-item ios-dock-glass rounded-2xl p-3 sm:p-4 flex items-center gap-3.5 relative">
+              
+              <img data-img src="${item.photo || ''}" alt="${item.name.replace(/"/g, '&quot;')}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-white/10 shrink-0 bg-black/40" />
+
+              <div class="flex-1 min-w-0">
+                <h4 data-name class="font-extrabold text-sm sm:text-base text-white truncate">${item.name}</h4>
+                <div data-subline class="text-xs text-zinc-400 truncate mt-0.5">${item.price}₽ × ${entry.qty} шт.</div>
+                <div class="mt-2 flex items-center gap-2">
+                  <span data-itemtotal data-val="${itemTotal}" class="brochure-price-pill text-xs px-2.5 py-0.5">${itemTotal}₽</span>
+                </div>
+              </div>
+
+              <div class="flex flex-col items-end gap-2 shrink-0">
+                <button type="button"
+                        onclick="animateRemoveCartItem('${item.id}')"
+                        title="Убрать из корзины"
+                        class="px-2.5 py-1 rounded-full bg-red-500/20 hover:bg-red-500/35 border border-red-400/30 text-red-200 text-[11px] font-bold transition cursor-pointer">
+                  Убрать
+                </button>
+                <div class="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-full p-1">
+                  <button type="button" onclick="changeCartQty('${item.id}', -1)" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center cursor-pointer">−</button>
+                  <span data-qty class="text-xs font-extrabold text-white px-1.5">${entry.qty}</span>
+                  <button type="button" onclick="changeCartQty('${item.id}', 1)" class="w-6 h-6 rounded-full bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-bold text-xs flex items-center justify-center cursor-pointer">+</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        `.trim();
+      const node = wrap.firstElementChild;
+      const img = node.querySelector('[data-img]');
+      if (img) img._srcKey = item.photo || '';
+      return node;
+    }
+
+    function updateCartItemElement(el, item, entry) {
+      const nameEl = el.querySelector('[data-name]');
+      if (nameEl && nameEl.textContent !== item.name) nameEl.textContent = item.name;
+      const img = el.querySelector('[data-img]');
+      if (img && (item.photo || '') !== img._srcKey) {
+        img._srcKey = item.photo || '';
+        img.src = item.photo || '';
+      }
+      const sub = el.querySelector('[data-subline]');
+      const subText = `${item.price}₽ × ${entry.qty} шт.`;
+      if (sub && sub.textContent !== subText) sub.textContent = subText;
+      const qtyEl = el.querySelector('[data-qty]');
+      if (qtyEl && qtyEl.textContent !== String(entry.qty)) {
+        qtyEl.textContent = String(entry.qty);
+        qtyEl.classList.remove('qty-bump');
+        void qtyEl.offsetWidth;
+        qtyEl.classList.add('qty-bump');
+      }
+      tweenNumber(el.querySelector('[data-itemtotal]'), item.price * entry.qty, v => `${v}₽`);
+    }
+
+    function buildEmptyCartElement() {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = `
+          <div data-cart-empty class="cart-empty-wrap pb-3">
+            <div class="cart-empty-card ios-dock-glass rounded-3xl p-8 text-center">
+              <div class="cart-stag w-14 h-14 rounded-2xl bg-orange-500/15 border border-orange-400/25 mx-auto flex items-center justify-center text-orange-400 mb-3" style="--i:0">
+                <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
+                </svg>
+              </div>
+              <h3 class="cart-stag text-lg font-extrabold text-white mb-1" style="--i:1">Ваша корзина пуста</h3>
+              <p class="cart-stag text-xs sm:text-sm text-zinc-400 mb-5" style="--i:2">Добавьте любимые роллы, пиццу или супы из меню «СУШНЯК»</p>
+              <button onclick="switchTab('menu')" class="cart-stag px-6 py-3 rounded-full bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-extrabold text-xs uppercase tracking-wider shadow-lg cursor-pointer" style="--i:3">
+                Перейти в меню
+              </button>
+            </div>
+          </div>
+        `.trim();
+      return wrap.firstElementChild;
+    }
+
+    // Плавно «раскрывает» новый блок: высота растёт, остальное интерфейс мягко отодвигается
+    function enterCartNode(node, delay, immediate, isEmpty) {
+      if (immediate) return;
+      const target = node.offsetHeight;
+      const mb = parseFloat(getComputedStyle(node).marginBottom) || 0;
+      node.style.overflow = 'hidden';
+      node.style.height = '0px';
+      node.style.marginBottom = '0px';
+      node.style.opacity = '0';
+      void node.offsetHeight;
+      node._enterTimer = setTimeout(() => {
+        node.style.transition =
+          `height ${CART_ENTER_MS}ms ${SMOOTH_EASE}, margin-bottom ${CART_ENTER_MS}ms ${SMOOTH_EASE}, opacity ${Math.round(CART_ENTER_MS * 0.75)}ms ease`;
+        node.style.height = target + 'px';
+        node.style.marginBottom = mb + 'px';
+        node.style.opacity = '1';
+        node.classList.add('is-in');
+        node._finishTimer = setTimeout(() => {
+          node.style.transition = '';
+          node.style.height = '';
+          node.style.marginBottom = '';
+          node.style.opacity = '';
+          node.style.overflow = '';
+          node.classList.remove('is-in');
+        }, CART_ENTER_MS + 120);
+      }, delay);
+    }
+
+    // Плавно убирает блок: уезжает/растворяется, затем схлопывается по высоте
+    function leaveCartNode(node, delay, isEmpty) {
+      if (node.dataset.leaving) return;
+      node.dataset.leaving = '1';
+      clearTimeout(node._enterTimer);
+      clearTimeout(node._finishTimer);
+      node.classList.remove('is-in');
+      const inner = node.querySelector('[data-cart-inner]');
+      const startH = node.offsetHeight;
+      node.style.overflow = 'hidden';
+      node.style.height = startH + 'px';
+      const run = () => {
+        if (isEmpty) {
+          node.classList.add('is-leaving');
+        } else if (inner) {
+          inner.style.transform = 'translate3d(-110%, 0, 0)';
+          inner.style.filter = 'blur(12px)';
+          inner.style.opacity = '0';
+        }
+        const collapseDelay = isEmpty ? 0 : 110;
+        node.style.transition =
+          `height ${CART_LEAVE_MS}ms ${SMOOTH_EASE} ${collapseDelay}ms, margin-bottom ${CART_LEAVE_MS}ms ${SMOOTH_EASE} ${collapseDelay}ms, opacity ${Math.round(CART_LEAVE_MS * 0.7)}ms ease ${collapseDelay}ms`;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          node.style.height = '0px';
+          node.style.marginBottom = '0px';
+          node.style.opacity = '0';
+        }));
+      };
+      if (delay > 0) setTimeout(run, delay); else run();
+      setTimeout(() => { node.remove(); }, delay + CART_LEAVE_MS + 260);
+    }
+
+    function reconcileCartList() {
       const container = document.getElementById('cart-items-container');
+      if (!container) return;
+      const valid = cart.filter(e => getCartItem(e.key));
+      const ids = new Set(valid.map(e => e.key));
+      const immediate = !container.firstElementChild;
+      const live = Array.from(container.querySelectorAll('[data-cart-outer]')).filter(el => !el.dataset.leaving);
+      const emptyEl = Array.from(container.querySelectorAll('[data-cart-empty]')).find(el => !el.dataset.leaving);
+
+      let stagger = 0;
+      let anyLeaving = false;
+      live.forEach(el => {
+        const id = el.getAttribute('data-cart-outer');
+        if (!ids.has(id)) {
+          leaveCartNode(el, stagger, false);
+          stagger += 55;
+          anyLeaving = true;
+        }
+      });
+
+      let enterIndex = 0;
+      valid.forEach(entry => {
+        const item = getCartItem(entry.key);
+        const el = live.find(e => e.getAttribute('data-cart-outer') === entry.key);
+        if (el) {
+          updateCartItemElement(el, item, entry);
+        } else {
+          const node = buildCartItemElement(item, entry);
+          container.appendChild(node);
+          attachCartSwipeHandlers(node);
+          enterCartNode(node, (emptyEl ? 60 : 0) + enterIndex * 70, immediate, false);
+          enterIndex++;
+        }
+      });
+
+      if (valid.length === 0) {
+        if (!emptyEl) {
+          const node = buildEmptyCartElement();
+          container.appendChild(node);
+          enterCartNode(node, anyLeaving ? 150 : 0, immediate, true);
+        }
+      } else if (emptyEl) {
+        leaveCartNode(emptyEl, 0, true);
+      }
+    }
+
+    function syncCartUI(animateBadge = false) {
       const totalCountEl = document.getElementById('cart-total-count');
       const totalSumEl = document.getElementById('cart-total-sum');
       const clearBtn = document.getElementById('clear-cart-btn');
@@ -2697,102 +3184,55 @@
         }
       });
 
-      if (totalCountEl) totalCountEl.textContent = `${totalQty} шт.`;
-      if (totalSumEl) totalSumEl.textContent = `${totalSum}₽`;
+      tweenNumber(totalCountEl, totalQty, v => `${v} шт.`);
+      tweenNumber(totalSumEl, totalSum, v => `${v}₽`);
 
       if (floatPill && floatPrice && floatCount) {
+        const wasVisible = !floatPill.classList.contains('hidden') && !floatPill._leaving;
         if (totalQty > 0) {
-          floatPill.classList.remove('hidden');
-          floatPill.classList.add('flex');
-          floatPrice.textContent = `${totalSum}₽`;
-          floatCount.textContent = `${totalQty} шт. в корзине`;
-          if (animateBadge) {
-            floatPill.classList.remove('animate-pop');
+          showSmooth(floatPill, true, 'flex');
+          tweenNumber(floatPrice, totalSum, v => `${v}₽`);
+          floatCount.textContent = `${totalQty}\u00A0шт. в\u00A0корзине`;
+          if (animateBadge && wasVisible) {
+            floatPill.classList.remove('animate-pop', 'smooth-in');
             void floatPill.offsetWidth;
             floatPill.classList.add('animate-pop');
           }
         } else {
-          floatPill.classList.add('hidden');
-          floatPill.classList.remove('flex');
+          showSmooth(floatPill, false, 'flex');
         }
       }
 
-      if (!container) return;
-
-      if (cart.length === 0) {
-        if (clearBtn) clearBtn.classList.add('hidden');
-        container.innerHTML = `
-          <div class="ios-dock-glass rounded-3xl p-8 text-center my-4">
-            <div class="w-14 h-14 rounded-2xl bg-orange-500/15 border border-orange-400/25 mx-auto flex items-center justify-center text-orange-400 mb-3">
-              <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007z" />
-              </svg>
-            </div>
-            <h3 class="text-lg font-extrabold text-white mb-1">Ваша корзина пуста</h3>
-            <p class="text-xs sm:text-sm text-zinc-400 mb-5">Добавьте любимые роллы, пиццу или супы из меню «СУШНЯК»</p>
-            <button onclick="switchTab('menu')" class="px-6 py-3 rounded-full bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-extrabold text-xs uppercase tracking-wider shadow-lg cursor-pointer">
-              Перейти в меню
-            </button>
-          </div>
-        `;
-        return;
-      }
-
-      if (clearBtn) clearBtn.classList.remove('hidden');
-
-      container.innerHTML = cart.map(entry => {
-        const item = MENU_ITEMS.find(i => i.id === entry.key);
-        if (!item) return '';
-        const itemTotal = item.price * entry.qty;
-        return `
-          <div data-cart-outer="${item.id}" class="cart-item-outer relative rounded-2xl overflow-hidden">
-            <div data-cart-inner="${item.id}" 
-                 data-item-id="${item.id}"
-                 class="cart-swipe-item ios-dock-glass rounded-2xl p-3 sm:p-4 flex items-center gap-3.5 relative">
-              
-              <div class="left-edge-blur-overlay absolute inset-y-0 left-0 w-24 z-20 rounded-l-2xl"></div>
-
-              <img src="${item.photo || ''}" alt="${item.name.replace(/"/g, '&quot;')}" class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-white/10 shrink-0 bg-black/40" />
-
-              <div class="flex-1 min-w-0">
-                <h4 class="font-extrabold text-sm sm:text-base text-white truncate">${item.name}</h4>
-                <div class="text-xs text-zinc-400 truncate mt-0.5">${item.price}₽ × ${entry.qty} шт.</div>
-                <div class="mt-2 flex items-center gap-2">
-                  <span class="brochure-price-pill text-xs px-2.5 py-0.5">${itemTotal}₽</span>
-                </div>
-              </div>
-
-              <div class="flex flex-col items-end gap-2 shrink-0">
-                <button type="button"
-                        onclick="animateRemoveCartItem('${item.id}')"
-                        title="Убрать из корзины"
-                        class="px-2.5 py-1 rounded-full bg-red-500/20 hover:bg-red-500/35 border border-red-400/30 text-red-200 text-[11px] font-bold transition cursor-pointer">
-                  Убрать
-                </button>
-                <div class="flex items-center gap-1.5 bg-black/40 border border-white/10 rounded-full p-1">
-                  <button type="button" onclick="changeCartQty('${item.id}', -1)" class="w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 text-white font-bold text-xs flex items-center justify-center cursor-pointer">−</button>
-                  <span class="text-xs font-extrabold text-white px-1.5">${entry.qty}</span>
-                  <button type="button" onclick="changeCartQty('${item.id}', 1)" class="w-6 h-6 rounded-full bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-bold text-xs flex items-center justify-center cursor-pointer">+</button>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      attachCartSwipeHandlers();
+      showSmooth(clearBtn, totalQty > 0, '');
+      reconcileCartList();
     }
 
-    function attachCartSwipeHandlers() {
-      const items = document.querySelectorAll('.cart-swipe-item');
+    function attachCartSwipeHandlers(root) {
+      const scope = root || document;
+      const items = scope.matches && scope.matches('.cart-swipe-item')
+        ? [scope]
+        : Array.from(scope.querySelectorAll('.cart-swipe-item'));
       items.forEach(el => {
+        if (el._swipeBound) return;
+        el._swipeBound = true;
         let startX = 0;
         let startY = 0;
         let currentX = 0;
         let dragging = false;
         const itemId = el.getAttribute('data-item-id');
-        const blurOverlay = el.querySelector('.left-edge-blur-overlay');
+        const zone = el.parentElement ? el.parentElement.querySelector('[data-trash-zone]') : null;
+        const lid = zone ? zone.querySelector('[data-trash-lid]') : null;
+        const GAP = 8, THRESHOLD = 95, MAXOPEN = 52;
+
+        function paintZone(dx) {
+          if (!zone) return;
+          const w = Math.max(0, Math.abs(dx) - GAP);
+          const prog = Math.min(1, Math.abs(dx) / 150);
+          zone.style.width = w + 'px';
+          zone.style.opacity = Math.min(1, w / 36).toFixed(2);
+          if (lid) lid.setAttribute('transform', `rotate(${(-prog * MAXOPEN).toFixed(1)} 5 7)`);
+          zone.classList.toggle('armed', Math.abs(dx) > THRESHOLD);
+        }
 
         el.addEventListener('touchstart', (e) => {
           if (!e.touches || e.touches.length !== 1) return;
@@ -2800,6 +3240,8 @@
           startY = e.touches[0].clientY;
           currentX = 0;
           dragging = false;
+          el.classList.remove('snapback');
+          if (zone) zone.classList.remove('snap');
         }, { passive: true });
 
         el.addEventListener('touchmove', (e) => {
@@ -2818,25 +3260,34 @@
 
           if (dragging && dx < 0) {
             currentX = dx;
-            const progress = Math.min(1, Math.abs(dx) / 140);
             el.style.transform = `translate3d(${dx}px, 0, 0)`;
-            el.style.filter = `blur(${(progress * 4).toFixed(1)}px)`;
-            if (blurOverlay) blurOverlay.style.opacity = progress.toFixed(2);
+            el.style.filter = `blur(${(Math.min(1, Math.abs(dx) / 140) * 4).toFixed(1)}px)`;
+            paintZone(dx);
           }
         }, { passive: true });
 
-        el.addEventListener('touchend', () => {
+        function release() {
           if (!dragging) return;
-          el.classList.remove('swiping');
-          if (currentX < -95) {
-            animateRemoveCartItem(itemId);
-          } else {
-            el.style.transform = 'translate3d(0, 0, 0)';
-            el.style.filter = 'none';
-            if (blurOverlay) blurOverlay.style.opacity = '0';
-          }
           dragging = false;
-        });
+          el.classList.remove('swiping');
+          if (currentX < -THRESHOLD) {
+            // подтверждено: карточка уезжает, красная зона заполняет всё место
+            el.classList.add('snapback');
+            if (zone) { zone.classList.add('snap'); zone.style.width = '100%'; zone.style.opacity = '1'; zone.classList.add('armed'); }
+            if (lid) lid.setAttribute('transform', `rotate(${-MAXOPEN} 5 7)`);
+            el.style.filter = 'blur(10px)';
+            el.style.transform = 'translate3d(-105%, 0, 0)';
+            setTimeout(() => animateRemoveCartItem(itemId), 230);
+          } else {
+            el.classList.add('snapback');
+            if (zone) { zone.classList.add('snap'); zone.style.width = '0px'; zone.style.opacity = '0'; zone.classList.remove('armed'); }
+            if (lid) lid.setAttribute('transform', 'rotate(0 5 7)');
+            el.style.filter = 'none';
+            el.style.transform = 'translate3d(0, 0, 0)';
+          }
+        }
+        el.addEventListener('touchend', release);
+        el.addEventListener('touchcancel', release);
       });
     }
 
@@ -2868,11 +3319,19 @@
       }
 
       const addBtn = document.getElementById('sheet-add-btn');
-      addBtn.onclick = () => {
-        addToCart(item.id);
-        closeDishSheet();
-      };
-      addBtn.innerHTML = `<span>+ Добавить в корзину за ${item.price}₽</span>`;
+      addBtn.setAttribute('data-add-btn', item.id);
+      addBtn.setAttribute('data-label-out', `Добавить в корзину за ${item.price}₽`);
+      addBtn.onclick = (e) => handleAddCtl(item.id, e);
+      addBtn.classList.remove('is-in');
+      addBtn.innerHTML = `
+        <button type="button" data-act="minus" aria-label="Убрать одну" class="add-ctl-btn">${ICON_MINUS}</button>
+        <span class="add-ctl-label">
+          <svg class="add-ctl-plusico" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+          <span data-label-text></span>
+        </span>
+        <button type="button" data-act="plus" aria-label="Добавить ещё" class="add-ctl-btn">${ICON_PLUS}</button>
+        <span data-cart-badge class="add-ctl-dot"></span>`;
+      refreshMenuBadges();
     }
 
     window.openDishSheet = function(itemId) {
@@ -3089,6 +3548,24 @@
         changed = true;
       }
 
+      if (Array.isArray(parsed.categories) && parsed.categories.length) {
+        const valid = parsed.categories
+          .filter(c => c && c.id && typeof c.title === 'string' && c.title.trim())
+          .map(c => ({ id: String(c.id), title: String(c.title) }));
+        const seen = new Set();
+        const next = valid.filter(c => (seen.has(c.id) ? false : (seen.add(c.id), true)));
+        DEFAULT_CATEGORIES.forEach((d, i) => {
+          if (!seen.has(d.id)) next.splice(Math.min(i, next.length), 0, { ...d });
+        });
+        const cur = JSON.stringify(CATEGORIES.map(c => ({ id: c.id, title: c.title })));
+        if (JSON.stringify(next) !== cur) {
+          CATEGORIES.splice(0, CATEGORIES.length, ...next);
+          if (!CATEGORIES.some(c => c.id === activeCategoryId)) activeCategoryId = CATEGORIES[0].id;
+          changed = true;
+        }
+        categoriesCustomized = true;
+      }
+
       const deletedSet = new Set(Array.isArray(parsed.deletedIds) ? parsed.deletedIds : []);
       const editsMap = { ...(parsed.editedItems || {}) };
       const addedList = Array.isArray(parsed.addedItems) ? [...parsed.addedItems] : [];
@@ -3253,6 +3730,7 @@
       state.phone = restaurantPhone;
       state.customLogo = customLogoDataUrl;
       state.updatedAt = Date.now();
+      if (categoriesCustomized) state.categories = CATEGORIES.map(c => ({ id: c.id, title: c.title }));
 
       if (itemUpdateId && itemPayload) {
         if (!state.items) state.items = {};
@@ -3371,6 +3849,7 @@
         const changed = applySerializedCustomState(parsed);
         if (changed || forceRender) {
           const searchInput = document.getElementById('menu-search-input');
+          renderCategoryStrip();
           renderMenu(searchInput ? searchInput.value : '');
           syncCartUI(false);
           if (currentSheetItem) {
@@ -3496,6 +3975,122 @@
       badge.classList.add('hidden');
       badge.classList.remove('flex');
       closeAdminLoginModal();
+      renderCategoryStrip();
+      const si = document.getElementById('menu-search-input');
+      renderMenu(si ? si.value : '');
+    };
+
+
+    // =========================================================================
+    // АДМИН: СОЗДАНИЕ И ПЕРЕИМЕНОВАНИЕ КАТЕГОРИЙ (синхронизируется через облако)
+    // =========================================================================
+    let catModalMode = 'create';
+    let catRenameId = null;
+    let catInsertIndex = 0;
+
+    function escapeHtmlText(t) {
+      return String(t).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+    }
+
+    function buildCategoryPositionList() {
+      const box = document.getElementById('cat-pos-list');
+      if (!box) return;
+      const name = (document.getElementById('cat-name-input').value.trim() || 'Новая категория').toUpperCase();
+      let html = '';
+      for (let i = 0; i <= CATEGORIES.length; i++) {
+        const sel = i === catInsertIndex;
+        html += `<button type="button" data-slot="${i}" onclick="pickCategorySlot(${i})" class="cat-pos-slot ${sel ? 'sel' : ''}"><span class="cat-pos-name">${sel ? '▸ ' + escapeHtmlText(name) : '+ вставить сюда'}</span></button>`;
+        if (i < CATEGORIES.length) html += `<div class="cat-pos-row">${escapeHtmlText(CATEGORIES[i].title)}</div>`;
+      }
+      box.innerHTML = html;
+    }
+
+    window.pickCategorySlot = function(i) {
+      catInsertIndex = i;
+      const name = (document.getElementById('cat-name-input').value.trim() || 'Новая категория').toUpperCase();
+      document.querySelectorAll('#cat-pos-list .cat-pos-slot').forEach(btn => {
+        const idx = Number(btn.getAttribute('data-slot'));
+        const nameEl = btn.querySelector('.cat-pos-name');
+        if (idx === i) {
+          btn.classList.add('sel');
+          nameEl.textContent = '▸ ' + name;
+        } else {
+          btn.classList.remove('sel');
+          nameEl.textContent = '+ вставить сюда';
+        }
+      });
+    };
+
+    window.onCategoryNameInput = function() {
+      if (catModalMode !== 'create') return;
+      const name = (document.getElementById('cat-name-input').value.trim() || 'Новая категория').toUpperCase();
+      const sel = document.querySelector('#cat-pos-list .cat-pos-slot.sel .cat-pos-name');
+      if (sel) sel.textContent = '▸ ' + name;
+      document.getElementById('cat-modal-error').classList.add('hidden');
+    };
+
+    function openCategoryModalBase(title, btnText) {
+      document.getElementById('admin-cat-modal-title').textContent = title;
+      document.getElementById('cat-save-btn').textContent = btnText;
+      document.getElementById('cat-modal-error').classList.add('hidden');
+      document.getElementById('admin-cat-modal').classList.add('open');
+      syncModalBlurBodyState();
+    }
+
+    window.openCategoryCreate = function() {
+      if (!isAdmin) return;
+      catModalMode = 'create';
+      catRenameId = null;
+      catInsertIndex = CATEGORIES.length;
+      document.getElementById('cat-name-input').value = '';
+      document.getElementById('cat-pos-wrap').classList.remove('hidden');
+      buildCategoryPositionList();
+      openCategoryModalBase('Новая категория', 'Создать категорию');
+      const list = document.getElementById('cat-pos-list');
+      setTimeout(() => { list.scrollTop = list.scrollHeight; }, 60);
+    };
+
+    window.openCategoryRename = function(catId) {
+      if (!isAdmin) return;
+      const cat = CATEGORIES.find(c => c.id === catId);
+      if (!cat) return;
+      catModalMode = 'rename';
+      catRenameId = catId;
+      document.getElementById('cat-name-input').value = cat.title;
+      document.getElementById('cat-pos-wrap').classList.add('hidden');
+      openCategoryModalBase('Переименовать категорию', 'Сохранить название');
+      setTimeout(() => { const el = document.getElementById('cat-name-input'); el.focus(); el.select(); }, 120);
+    };
+
+    window.closeCategoryModal = function() {
+      document.getElementById('admin-cat-modal').classList.remove('open');
+      syncModalBlurBodyState();
+    };
+
+    window.saveCategoryModal = function() {
+      if (!isAdmin) return;
+      const title = document.getElementById('cat-name-input').value.trim().replace(/\s+/g, ' ').toUpperCase();
+      const err = document.getElementById('cat-modal-error');
+      if (!title) { err.textContent = 'Введите название категории'; err.classList.remove('hidden'); return; }
+      if (CATEGORIES.some(c => c.title === title && c.id !== catRenameId)) {
+        err.textContent = 'Категория с таким названием уже есть'; err.classList.remove('hidden'); return;
+      }
+      let newId = null;
+      if (catModalMode === 'rename') {
+        const cat = CATEGORIES.find(c => c.id === catRenameId);
+        if (cat) cat.title = title;
+      } else {
+        newId = 'cat-' + Date.now().toString(36);
+        CATEGORIES.splice(Math.max(0, Math.min(catInsertIndex, CATEGORIES.length)), 0, { id: newId, title });
+      }
+      categoriesCustomized = true;
+      saveCustomStateEverywhere(null, null);
+      renderCategoryStrip();
+      const si = document.getElementById('menu-search-input');
+      renderMenu(si ? si.value : '');
+      if (currentSheetItem) populateDishSheet(currentSheetItem);
+      closeCategoryModal();
+      if (newId) setTimeout(() => { try { scrollToCategory(newId); } catch (e) {} }, 350);
     };
 
     function populateAdminCategorySelect(selectedCatId) {
