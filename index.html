@@ -446,34 +446,26 @@
       transition: none !important;
     }
 
-    .sheet-top-blur-bar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 72px;
-      z-index: 30;
-      pointer-events: none;
-      background: linear-gradient(180deg, rgba(24, 22, 22, 0.88) 0%, rgba(24, 22, 22, 0.45) 58%, rgba(24, 22, 22, 0) 100%);
-      backdrop-filter: blur(18px) saturate(180%);
-      -webkit-backdrop-filter: blur(18px) saturate(180%);
-      mask-image: linear-gradient(180deg, #000 0%, #000 38%, rgba(0, 0, 0, 0.55) 70%, transparent 100%);
-      -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 38%, rgba(0, 0, 0, 0.55) 70%, transparent 100%);
+    /* Ступенчатый (многослойный) блюр без масок: слои разной высоты и радиуса дают плавный градиент
+       размытия даже там, где браузер не умеет маскировать backdrop-filter. Зона маленькая — дёшево по ресурсам. */
+    .sheet-top-blur-bar, .sheet-bottom-blur-bar {
+      position: absolute; left: 0; right: 0; z-index: 30; pointer-events: none;
     }
-
-    .sheet-bottom-blur-bar {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 108px;
-      z-index: 30;
-      pointer-events: none;
-      background: linear-gradient(0deg, rgba(24, 22, 22, 0.92) 0%, rgba(24, 22, 22, 0.52) 58%, rgba(24, 22, 22, 0) 100%);
-      backdrop-filter: blur(18px) saturate(180%);
-      -webkit-backdrop-filter: blur(18px) saturate(180%);
-      mask-image: linear-gradient(0deg, #000 0%, #000 42%, rgba(0, 0, 0, 0.58) 74%, transparent 100%);
-      -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 42%, rgba(0, 0, 0, 0.58) 74%, transparent 100%);
+    .sheet-top-blur-bar {
+      display: none;
+      top: 0; height: 44px;
+      backdrop-filter: blur(60px);
+      -webkit-backdrop-filter: blur(60px);
+      mask-image: linear-gradient(180deg, #000 0%, #000 30%, rgba(0,0,0,0.6) 58%, rgba(0,0,0,0.22) 82%, transparent 100%);
+      -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 30%, rgba(0,0,0,0.6) 58%, rgba(0,0,0,0.22) 82%, transparent 100%);
+    }
+    /* Низ: начинается с середины боковой стороны кнопки (≈ 51px от низа) */
+    .sheet-bottom-blur-bar { bottom: 0; height: 52px; }
+    .sheet-top-blur-bar > i, .sheet-bottom-blur-bar > i { display: block; pointer-events: none; }
+    /* Контент плавно растворяется на границах, поэтому линии размытия не видно */
+    #sheet-scroll-body {
+      -webkit-mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,0.4) 14px, #000 40px, #000 calc(100% - 52px), rgba(0,0,0,0.4) calc(100% - 30px), transparent 100%);
+      mask-image: linear-gradient(180deg, transparent 0, rgba(0,0,0,0.4) 14px, #000 40px, #000 calc(100% - 52px), rgba(0,0,0,0.4) calc(100% - 30px), transparent 100%);
     }
 
     #views-slider-viewport {
@@ -1001,7 +993,6 @@
     <div id="dish-sheet-panel" 
          class="relative z-[150] w-full max-w-2xl mx-auto h-[88dvh] sm:h-[85dvh] rounded-t-[36px] ios-sheet-glass overflow-hidden shadow-[0_-24px_70px_rgba(0,0,0,0.85)]">
       
-      <div class="sheet-top-blur-bar"></div>
 
       <div id="sheet-grabber-zone" 
            class="absolute top-0 left-0 right-0 z-40 pt-3.5 pb-4 px-5 flex items-center justify-between cursor-grab active:cursor-grabbing touch-none">
@@ -1044,6 +1035,7 @@
           <p id="sheet-dish-ingredients" class="text-sm sm:text-base text-zinc-100 leading-relaxed font-medium"></p>
         </div>
       </div>
+
 
       <div class="sheet-bottom-blur-bar"></div>
 
@@ -4415,6 +4407,36 @@
       syncCartUI(false);
     };
 
+
+    // Блюр краёв карточки позиции: тонкие полосы с плавно меняющимся радиусом.
+    // Каждая полоса — высокий backdrop-блок (чтобы ядро размытия видело контент), обрезанный clip-path до своей полосы.
+    (function buildSheetBlurLayers() {
+      const N = 14, MAX = 20, MIN = 1.5;
+      document.querySelectorAll('.sheet-bottom-blur-bar').forEach(bar => {
+        const isTop = false;
+        const H = isTop ? 44 : 52;
+        for (let i = 0; i < N; i++) {
+          const d0 = i * H / N, d1 = (i + 1) * H / N;
+          const k = 1 - (i + 0.5) / N;
+          const sigma = MIN + (MAX - MIN) * Math.pow(k, 1.15);
+          const M = Math.ceil(sigma * 2.6);
+          const el = document.createElement('i');
+          el.style.position = 'absolute';
+          el.style.left = '0'; el.style.right = '0';
+          const near = Math.min(M, d0);          // у самого края не выходим за границу панели
+          el.style[isTop ? 'top' : 'bottom'] = (d0 - near) + 'px';
+          el.style.height = ((d1 - d0) + near + M + 0.6) + 'px';
+          const clip = isTop
+            ? 'inset(' + near + 'px 0 ' + M + 'px 0)'
+            : 'inset(' + M + 'px 0 ' + near + 'px 0)';
+          el.style.clipPath = clip; el.style.webkitClipPath = clip;
+          const f = 'blur(' + sigma.toFixed(2) + 'px)';
+          el.style.backdropFilter = f; el.style.webkitBackdropFilter = f;
+          bar.appendChild(el);
+        }
+      });
+    })();
+
     // Инициализация всего приложения синхронно и мгновенно при старте
     function initSushnyakApp() {
       loadSavedLocalCustomizations();
@@ -4424,6 +4446,16 @@
       renderCategoryStrip();
       renderMenu('');
       syncCartUI(false);
+      const catStripEl = document.getElementById('expanded-cat-strip');
+      if (catStripEl) {
+        catStripEl.addEventListener('wheel', (e) => {
+          if (catStripEl.scrollWidth <= catStripEl.clientWidth) return;
+          const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+          if (!delta) return;
+          e.preventDefault();
+          catStripEl.scrollLeft += delta * (e.deltaMode === 1 ? 32 : 1);
+        }, { passive: false });
+      }
       bindScrollListeners();
       initSheetSwipeDownClose();
       tryLoadLocalBrochureFiles();
