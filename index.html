@@ -671,6 +671,62 @@
   
     .cat-del-btn { color: #fca5a5; }
     #cat-save-btn.cat-danger { background: linear-gradient(90deg, #b91c1c, #ef4444) !important; }
+  
+    /* ===== Панель управления администратора ===== */
+    .admin-open-btn {
+      display: none; align-items: center; justify-content: center; cursor: pointer;
+      width: 50px; height: 50px; border-radius: 999px; color: #fb923c;
+      top: 116px; left: 0;
+      background: rgba(30,31,36,0.62); border: 1px solid rgba(255,255,255,0.2);
+      backdrop-filter: blur(20px) saturate(180%); -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+      transition: top 0.48s var(--ios-fluid), left 0.48s var(--ios-fluid), transform 0.3s var(--ios-smooth), background 0.3s var(--ios-smooth);
+    }
+    .admin-open-dot { position: absolute; top: 5px; right: 5px; width: 10px; height: 10px; border-radius: 999px; border: 2px solid #1b1c20; }
+    .admin-open-btn.show { display: inline-flex; }
+    .admin-open-btn:active { transform: scale(0.94); }
+    body.cart-tab .admin-open-btn { display: none !important; }
+    #admin-panel-modal { visibility: hidden; pointer-events: none; transition: visibility 0.5s linear; }
+    #admin-panel-modal.open { visibility: visible; pointer-events: auto; }
+    #admin-panel-backdrop {
+      opacity: 0; background: rgba(10,10,14,0.34);
+      backdrop-filter: blur(10px) saturate(160%); -webkit-backdrop-filter: blur(10px) saturate(160%);
+      transition: opacity 0.45s var(--ios-fluid);
+    }
+    #admin-panel-modal.open #admin-panel-backdrop { opacity: 1; }
+    #admin-panel-sheet { transform: translate3d(0, 105%, 0); transition: transform 0.5s cubic-bezier(0.25, 1, 0.4, 1); }
+    #admin-panel-modal.open #admin-panel-sheet { transform: translate3d(0, 0, 0); }
+    #admin-panel-sheet.dragging-sheet { transition: none !important; }
+    .admin-row {
+      width: 100%; display: flex; align-items: center; gap: 14px; text-align: left; cursor: pointer;
+      padding: 13px 15px; border-radius: 20px; color: #fff;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+      transition: background 0.3s var(--ios-smooth), transform 0.3s var(--ios-smooth);
+    }
+    .admin-row:hover { background: rgba(255,255,255,0.13); }
+    .admin-row:active { transform: scale(0.98); }
+    .admin-row-ico {
+      width: 42px; height: 42px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, rgba(229,57,26,0.35), rgba(242,92,34,0.2)); color: #fb923c;
+    }
+    .admin-row-body { display: flex; flex-direction: column; min-width: 0; }
+    .admin-row-title { font-size: 15px; font-weight: 800; line-height: 1.2; }
+    .admin-row-sub { font-size: 11.5px; font-weight: 600; color: #a1a1aa; margin-top: 2px; }
+    .admin-row-danger .admin-row-ico { background: rgba(239,68,68,0.2); color: #fca5a5; }
+    .admin-row-danger .admin-row-title { color: #fca5a5; }
+  
+    .move-cat-row {
+      width: 100%; text-align: left; padding: 11px 14px; border-radius: 14px; cursor: pointer;
+      font-size: 12px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: #e4e4e7;
+      background: rgba(255,255,255,0.06); border: 1.5px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      transition: background 0.3s ease, border-color 0.3s ease, transform 0.25s var(--ios-smooth);
+    }
+    .move-cat-row:active { transform: scale(0.98); }
+    .move-cat-row.current { opacity: 0.5; cursor: default; }
+    .move-cat-row.sel { border-color: #fb923c; background: linear-gradient(90deg, rgba(229,57,26,0.3), rgba(242,92,34,0.15)); color: #fff; }
+    .move-cat-row .tag { font-size: 10px; color: #a1a1aa; letter-spacing: 0.04em; }
+    #move-save-btn:disabled { opacity: 0.4; pointer-events: none; }
   </style>
 </head>
 <body class="brochure-bg antialiased selection:bg-orange-500 selection:text-white">
@@ -728,6 +784,13 @@
         </div>
       </div>
 
+      <!-- Кнопка режима администратора (появляется только после входа) -->
+      <button id="admin-open-btn" type="button" onclick="openAdminPanel()" title="Управление"
+              class="admin-open-btn pointer-events-auto absolute z-20">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.107-1.204l-.527-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span id="admin-open-dot" class="admin-open-dot bg-amber-400 animate-pulse"></span>
+      </button>
+
     </div>
   </div>
 
@@ -772,45 +835,7 @@
                            class="h-24 sm:h-32 w-auto object-contain block drop-shadow-[0_8px_24px_rgba(0,0,0,0.45)]" draggable="false" />
                     </div>
 
-                    <!-- Панель управления для вошедшего администратора -->
-                    <div id="admin-active-badge" class="hidden mt-3 flex-wrap items-center justify-center lg:justify-start gap-2">
-                      <span class="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-[11px] font-extrabold tracking-wide inline-flex items-center gap-1.5">
-                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                        <span>Режим управления</span>
-                      </span>
-                      <button id="admin-cloud-status-btn"
-                              type="button"
-                              onclick="event.stopPropagation(); openAdminCloudHelpModal();"
-                              class="admin-btn">
-                        <span id="admin-cloud-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <span id="admin-cloud-text">Проверка облака...</span>
-                      </button>
-                      <button type="button"
-                              onclick="event.stopPropagation(); openAdminCreateItemModal();"
-                              class="admin-btn">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                        <span>+ Добавить позицию</span>
-                      </button>
-                      <div class="basis-full h-0"></div>
-                      <button type="button"
-                              onclick="event.stopPropagation(); openCategoryCreate();"
-                              class="admin-btn">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776" />
-                        </svg>
-                        <span>+ Добавить категорию</span>
-                      </button>
-                      <button type="button"
-                              onclick="event.stopPropagation(); openAdminLogoModal();"
-                              class="admin-btn">
-                        <svg class="w-3.5 h-3.5 text-orange-400" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                        </svg>
-                        <span>Изменить логотип</span>
-                      </button>
-                    </div>
+                    <div id="admin-active-badge" class="hidden"></div>
                   </div>
 
                   <div class="mt-2.5 font-['Unbounded'] font-extrabold text-xl sm:text-2xl tracking-wide text-[#f6b928] drop-shadow">
@@ -1020,6 +1045,7 @@
             <h3 id="sheet-dish-title" class="text-2xl sm:text-3xl font-black text-white leading-tight"></h3>
           </div>
 
+<div class="flex flex-col items-end gap-2 shrink-0">
           <button id="sheet-admin-edit-btn"
                   onclick="openAdminItemEditor()"
                   class="admin-btn hidden shrink-0">
@@ -1028,6 +1054,13 @@
             </svg>
             <span>Редактировать позицию</span>
           </button>
+          <button id="sheet-admin-move-btn"
+                  onclick="openMoveItemModal()"
+                  class="admin-btn hidden shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+            <span>Перенести</span>
+          </button>
+          </div>
         </div>
 
         <div class="rounded-2xl ios-dock-glass p-4 sm:p-5 space-y-2">
@@ -1132,6 +1165,64 @@
           </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- ПАНЕЛЬ УПРАВЛЕНИЯ АДМИНИСТРАТОРА (всплывающее окно как карточка позиции)  -->
+  <!-- ======================================================================= -->
+  <div id="admin-panel-modal" class="fixed inset-0 z-[140] flex flex-col justify-end">
+    <div id="admin-panel-backdrop" onclick="closeAdminPanel()" class="absolute inset-0"></div>
+    <div id="admin-panel-sheet" class="relative z-10 w-full max-w-2xl mx-auto rounded-t-[36px] ios-sheet-glass overflow-hidden shadow-[0_-24px_70px_rgba(0,0,0,0.85)]">
+      <div id="admin-panel-grabber" class="pt-3.5 pb-2 px-5 flex items-center justify-between cursor-grab touch-none">
+        <div class="w-9"></div>
+        <div class="py-1.5 px-10"><div class="w-14 h-1.5 rounded-full bg-white/45"></div></div>
+        <button onclick="closeAdminPanel()" class="w-9 h-9 rounded-full ios-dock-glass hover:bg-white/25 flex items-center justify-center text-white transition cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+      </div>
+      <div class="px-5 sm:px-8 pb-8 pt-1 space-y-3 max-h-[78dvh] overflow-y-auto">
+        <div>
+          <div class="text-xs font-extrabold uppercase tracking-widest text-orange-400 mb-1">Режим управления</div>
+          <h3 class="text-2xl font-black text-white leading-tight">Управление меню</h3>
+        </div>
+        <button id="admin-cloud-status-btn" type="button" onclick="openAdminCloudHelpModal()" class="admin-row">
+          <span class="admin-row-ico"><span id="admin-cloud-dot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span></span>
+          <span class="admin-row-body"><span class="admin-row-title" id="admin-cloud-text">Проверка облака...</span><span class="admin-row-sub">Состояние синхронизации с Firebase</span></span>
+        </button>
+        <button type="button" onclick="adminPanelAction('openAdminCreateItemModal')" class="admin-row">
+          <span class="admin-row-ico"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg></span>
+          <span class="admin-row-body"><span class="admin-row-title">Добавить позицию</span><span class="admin-row-sub">Новое блюдо с фото, ценой и составом</span></span>
+        </button>
+        <button type="button" onclick="adminPanelAction('openCategoryCreate')" class="admin-row">
+          <span class="admin-row-ico"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/></svg></span>
+          <span class="admin-row-body"><span class="admin-row-title">Добавить категорию</span><span class="admin-row-sub">Название и место среди других категорий</span></span>
+        </button>
+        <button type="button" onclick="adminPanelAction('openAdminLogoModal')" class="admin-row">
+          <span class="admin-row-ico"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg></span>
+          <span class="admin-row-body"><span class="admin-row-title">Изменить логотип</span><span class="admin-row-sub">Загрузить своё изображение</span></span>
+        </button>
+        <button type="button" onclick="closeAdminPanel(); logoutAdmin();" class="admin-row admin-row-danger">
+          <span class="admin-row-ico"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9"/></svg></span>
+          <span class="admin-row-body"><span class="admin-row-title">Выйти из режима управления</span><span class="admin-row-sub">Вернуться к обычному просмотру</span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- ПЕРЕНОС ПОЗИЦИИ В ДРУГУЮ КАТЕГОРИЮ                                         -->
+  <!-- ======================================================================= -->
+  <div id="admin-move-modal" class="ios-modal-overlay fixed inset-0 z-[185] flex items-center justify-center px-4 py-6 overflow-y-auto">
+    <div onclick="closeMoveItemModal()" class="ios-modal-backdrop absolute inset-0"></div>
+    <div class="ios-modal-card relative z-10 w-full max-w-md rounded-3xl p-5 sm:p-6 space-y-4 my-auto">
+      <div class="flex items-center justify-between">
+        <h4 class="text-lg font-extrabold text-white">Перенести позицию</h4>
+        <button onclick="closeMoveItemModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-zinc-300 cursor-pointer">✕</button>
+      </div>
+      <p id="move-item-name" class="text-sm font-bold text-orange-300"></p>
+      <div id="move-cat-list" class="space-y-1.5 max-h-[46vh] overflow-y-auto pr-1"></div>
+      <button id="move-save-btn" onclick="confirmMoveItem()" class="w-full py-3 rounded-xl bg-gradient-to-r from-[#e5391a] to-[#f25c22] text-white font-extrabold text-sm shadow-lg active:scale-95 transition cursor-pointer">Перенести</button>
     </div>
   </div>
 
@@ -2333,7 +2424,7 @@
       const cloudHelpEl = document.getElementById('admin-cloud-help-modal');
       const cloudHelpOpen = cloudHelpEl && cloudHelpEl.classList.contains('open');
       const catModalEl = document.getElementById('admin-cat-modal');
-      const catOpen = catModalEl && catModalEl.classList.contains('open');
+      const catOpen = (catModalEl && catModalEl.classList.contains('open')) || !!document.querySelector('#admin-move-modal.open');
       if (callOpen || loginOpen || itemOpen || logoOpen || cloudHelpOpen || catOpen) {
         document.body.classList.add('modal-blur-active');
       } else {
@@ -2577,6 +2668,14 @@
 
       if (!morphContainer || !searchBox || !catsBox || !searchInput) return;
 
+      const adminBtn = document.getElementById('admin-open-btn');
+      const placeAdmin = (mode) => {
+        if (!adminBtn) return;
+        if (mode === 'expanded') { adminBtn.style.top = '116px'; adminBtn.style.left = '0px'; }
+        else if (mode === 'inline') { adminBtn.style.top = '0px'; adminBtn.style.left = '60px'; }
+        else { adminBtn.style.top = '60px'; adminBtn.style.left = '0px'; }
+      };
+
       if (currentTab !== 'menu') {
         morphContainer.style.opacity = '0';
         morphContainer.style.pointerEvents = 'none';
@@ -2602,6 +2701,7 @@
           clearBtn.classList.remove('hidden');
           clearBtn.classList.add('flex');
         }
+        placeAdmin('below');
         syncMorphRowWidthVar();
         return;
       }
@@ -2617,6 +2717,7 @@
         catsBox.style.top = '58px';
         catsBox.style.width = '100%';
         catsBox.classList.remove('is-collapsed');
+        placeAdmin('expanded');
         syncMorphRowWidthVar();
         return;
       }
@@ -2661,6 +2762,7 @@
         catsBox.classList.add('is-collapsed');
       }
 
+      placeAdmin((manualExpandSearch || manualExpandCats) ? 'below' : 'inline');
       syncMorphRowWidthVar();
     }
 
@@ -2795,6 +2897,7 @@
     // =========================================================================
     window.switchTab = function(tabName) {
       currentTab = tabName;
+      document.body.classList.toggle('cart-tab', tabName === 'cart');
       const track = document.getElementById('views-slider-track');
       const btnMenu = document.getElementById('tab-btn-menu');
       const btnCart = document.getElementById('tab-btn-cart');
@@ -3309,14 +3412,12 @@
       if (item.spicy) badges.push(`<span class="brochure-weight-pill text-xs px-3 py-1 text-orange-300 border-orange-400/50">Острое 🔥</span>`);
       badgesTop.innerHTML = badges.join('');
 
-      const editBtn = document.getElementById('sheet-admin-edit-btn');
-      if (isAdmin) {
-        editBtn.classList.remove('hidden');
-        editBtn.classList.add('inline-flex');
-      } else {
-        editBtn.classList.add('hidden');
-        editBtn.classList.remove('inline-flex');
-      }
+      ['sheet-admin-edit-btn', 'sheet-admin-move-btn'].forEach(id => {
+        const b = document.getElementById(id);
+        if (!b) return;
+        b.classList.toggle('hidden', !isAdmin);
+        b.classList.toggle('inline-flex', !!isAdmin);
+      });
 
       const addBtn = document.getElementById('sheet-add-btn');
       addBtn.setAttribute('data-add-btn', item.id);
@@ -3429,6 +3530,8 @@
       cloudSyncState.ok = ok;
       if (detailMsg) cloudSyncState.lastError = detailMsg;
       const dot = document.getElementById('admin-cloud-dot');
+      const openDot = document.getElementById('admin-open-dot');
+      if (openDot) openDot.className = 'admin-open-dot ' + (ok ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse');
       const label = document.getElementById('admin-cloud-text');
       const detailBox = document.getElementById('cloud-diagnostic-detail');
 
@@ -3957,15 +4060,102 @@
       syncModalBlurBodyState();
     };
 
+
+
+    // =========================================================================
+    // АДМИН: ПЕРЕНОС ПОЗИЦИИ В ДРУГУЮ КАТЕГОРИЮ (синхронизируется через облако)
+    // =========================================================================
+    let moveTargetCat = null;
+    window.openMoveItemModal = function() {
+      if (!isAdmin || !currentSheetItem) return;
+      moveTargetCat = null;
+      document.getElementById('move-item-name').textContent = currentSheetItem.name;
+      const list = document.getElementById('move-cat-list');
+      list.innerHTML = CATEGORIES.map(c => {
+        const cur = c.id === currentSheetItem.category;
+        return `<button type="button" data-move-cat="${c.id}" ${cur ? '' : `onclick="pickMoveCategory('${c.id}')"`} class="move-cat-row ${cur ? 'current' : ''}"><span>${escapeHtmlText(c.title)}</span>${cur ? '<span class="tag">сейчас здесь</span>' : ''}</button>`;
+      }).join('');
+      document.getElementById('move-save-btn').disabled = true;
+      document.getElementById('admin-move-modal').classList.add('open');
+      syncModalBlurBodyState();
+    };
+    window.pickMoveCategory = function(catId) {
+      moveTargetCat = catId;
+      document.querySelectorAll('#move-cat-list .move-cat-row').forEach(el => {
+        el.classList.toggle('sel', el.getAttribute('data-move-cat') === catId);
+      });
+      document.getElementById('move-save-btn').disabled = false;
+    };
+    window.closeMoveItemModal = function() {
+      document.getElementById('admin-move-modal').classList.remove('open');
+      syncModalBlurBodyState();
+    };
+    window.confirmMoveItem = function() {
+      if (!isAdmin || !currentSheetItem || !moveTargetCat) return;
+      const item = currentSheetItem;
+      item.category = moveTargetCat;
+      saveCustomStateEverywhere(item.id, {
+        category: item.category,
+        name: item.name,
+        price: item.price,
+        weight: item.weight || '',
+        spicy: Boolean(item.spicy),
+        ingredients: item.ingredients,
+        customPhoto: item.customPhoto || '',
+        updatedAt: Date.now()
+      });
+      populateDishSheet(item);
+      renderCategoryStrip();
+      const si = document.getElementById('menu-search-input');
+      renderMenu(si ? si.value : '');
+      syncCartUI(false);
+      closeMoveItemModal();
+    };
+
+    // =========================================================================
+    // ПАНЕЛЬ УПРАВЛЕНИЯ АДМИНИСТРАТОРА
+    // =========================================================================
+    function syncAdminOpenBtn() {
+      const btn = document.getElementById('admin-open-btn');
+      if (btn) btn.classList.toggle('show', !!isAdmin);
+    }
+    window.openAdminPanel = function() {
+      if (!isAdmin) return;
+      document.getElementById('admin-panel-sheet').style.transform = '';
+      document.getElementById('admin-panel-modal').classList.add('open');
+      document.body.classList.add('sheet-open');
+    };
+    window.closeAdminPanel = function() {
+      const sheet = document.getElementById('admin-panel-sheet');
+      if (sheet) sheet.style.transform = '';
+      document.getElementById('admin-panel-modal').classList.remove('open');
+      document.body.classList.remove('sheet-open');
+    };
+    window.adminPanelAction = function(fnName) {
+      closeAdminPanel();
+      setTimeout(() => { if (typeof window[fnName] === 'function') window[fnName](); }, 120);
+    };
+    (function initAdminPanelSwipe() {
+      const grabber = document.getElementById('admin-panel-grabber');
+      const sheet = document.getElementById('admin-panel-sheet');
+      if (!grabber || !sheet) return;
+      let startY = 0, dy = 0, drag = false;
+      grabber.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; startY = e.touches[0].clientY; dy = 0; drag = true; sheet.classList.add('dragging-sheet'); }, { passive: true });
+      grabber.addEventListener('touchmove', e => { if (!drag) return; dy = Math.max(0, e.touches[0].clientY - startY); sheet.style.transform = 'translate3d(0,' + dy + 'px,0)'; }, { passive: true });
+      grabber.addEventListener('touchend', () => { if (!drag) return; drag = false; sheet.classList.remove('dragging-sheet'); if (dy > 90) closeAdminPanel(); else sheet.style.transform = ''; });
+    })();
+
     window.submitAdminLogin = function() {
       const u = document.getElementById('admin-login-user').value.trim();
       const p = document.getElementById('admin-login-pass').value.trim();
       if (u === 'admin' && p === '1357990') {
         isAdmin = true;
         const badge = document.getElementById('admin-active-badge');
-        badge.classList.remove('hidden');
-        badge.classList.add('flex');
+        syncAdminOpenBtn();
         closeAdminLoginModal();
+        renderCategoryStrip();
+        const siLogin = document.getElementById('menu-search-input');
+        renderMenu(siLogin ? siLogin.value : '');
         pullCloudStateFromFirestoreRest(true);
       } else {
         document.getElementById('admin-login-error').classList.remove('hidden');
@@ -3975,8 +4165,7 @@
     window.logoutAdmin = function() {
       isAdmin = false;
       const badge = document.getElementById('admin-active-badge');
-      badge.classList.add('hidden');
-      badge.classList.remove('flex');
+      syncAdminOpenBtn();
       closeAdminLoginModal();
       renderCategoryStrip();
       const si = document.getElementById('menu-search-input');
